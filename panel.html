@@ -187,7 +187,7 @@ function arrancar(){
 }
 function pintarTabs(){
   var n=S.pedidos.filter(function(p){return p.estado==='POR_APROBAR'}).length;
-  var t=[['pedidos','Pedidos'+(n?'<span class="n">'+n+'</span>':'')],['productos','Productos'],['reportes','Reportes'],['enlaces','Enlaces'],['vendedores','Vendedores'],['ajustes','Ajustes']];
+  var t=[['pedidos','Pedidos'+(n?'<span class="n">'+n+'</span>':'')],['productos','Productos'],['reportes','Reportes'],['marcas','Marcas y banners'],['enlaces','Enlaces'],['vendedores','Vendedores'],['ajustes','Ajustes']];
   if(S.rol==='administrador')t.push(['stock','Stock']);
   $('#tabs').innerHTML=t.map(function(x){return '<button data-t="'+x[0]+'" class="'+(S.tab===x[0]?'on':'')+'">'+x[1]+'</button>'}).join('');
 }
@@ -196,7 +196,7 @@ $('#btnAct').addEventListener('click',function(){toast('Actualizando…');Promis
 $('#btnSalir').addEventListener('click',salir);
 function vista(){
   if(!S.token)return;
-  ({pedidos:vistaPedidos,productos:vistaProductos,reportes:vistaReportes,enlaces:vistaEnlaces,vendedores:vistaVendedores,ajustes:vistaAjustes,stock:vistaStock})[S.tab]();
+  ({pedidos:vistaPedidos,productos:vistaProductos,reportes:vistaReportes,marcas:vistaMarcas,enlaces:vistaEnlaces,vendedores:vistaVendedores,ajustes:vistaAjustes,stock:vistaStock})[S.tab]();
 }
 function nombreVend(id){if(id==='detal')return 'Detal';var v=S.vendedores.filter(function(x){return x.id===id})[0];return v?v.nombre:id}
 
@@ -225,6 +225,13 @@ function textoPedido(p){
   p.lineas.forEach(function(l){t+='• '+l.cantidad+' × '+l.nombre+(l.tono?' ('+l.tono+')':'')+' · '+(l.unidad_venta==='caja'?'Caja x'+l.por_caja+' = '+l.unidades+' unid.':'Unidad')+' · '+cop(l.precio)+' = '+cop(l.subtotal)+'\n'});
   return t+'\n*Total: '+cop(p.total)+'* (IVA incluido)';
 }
+function descuentosHtml(p){
+  var d=p.descuentos;if(!d||!d.ahorroTotal)return '';
+  var h='<div class="card" style="background:#fbf5e3;border-color:var(--gold)"><b>Para facturar (referencia)</b><div class="mut">El total del pedido no cambia: estos descuentos se aplican al facturar.</div>';
+  d.volumen.forEach(function(v){h+='<div class="row" style="margin-top:6px"><span class="g">'+esc(v.nombre)+' · '+v.unidades+' unid. · '+v.pct+' % por volumen</span><b>- '+cop(v.ahorro)+'</b></div>'});
+  if(d.prontoPago)h+='<div class="row" style="margin-top:6px"><span class="g">'+esc(d.prontoPago.marca)+': '+d.prontoPago.pct+' % si paga de contado o por transferencia (sobre '+cop(d.prontoPago.base)+')</span><b>- '+cop(d.prontoPago.ahorro)+'</b></div>';
+  return h+'<div class="row" style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px"><b class="g">Descuento total de referencia</b><b>- '+cop(d.ahorroTotal)+'</b></div></div>';
+}
 function detallePedido(id,extra){
   var p=S.pedidos.filter(function(x){return x.id===id})[0];if(!p)return;
   var h='<div class="row"><h2 class="g" style="margin:0">'+esc(p.negocio)+'</h2><button class="btn s mini" id="cerr">Cerrar</button></div>'
@@ -233,7 +240,7 @@ function detallePedido(id,extra){
     +'<div class="mut">Asesor: '+esc(nombreVend(p.vendedor))+' · lista '+esc(p.lista)+'</div>'+(p.observaciones?'<div style="margin-top:6px">Obs.: '+esc(p.observaciones)+'</div>':'')+'</div>'
     +'<table><thead><tr><th>Producto</th><th class="r">Cant.</th><th class="r">Subtotal</th></tr></thead><tbody>'
     +p.lineas.map(function(l){return '<tr><td>'+esc(l.nombre)+(l.tono?' <span class="mut">('+esc(l.tono)+')</span>':'')+'<div class="mut">'+(l.unidad_venta==='caja'?'Caja x'+l.por_caja+' = '+l.unidades+' unid.':'Unidad')+' · '+cop(l.precio)+'</div></td><td class="r">'+l.cantidad+'</td><td class="r">'+cop(l.subtotal)+'</td></tr>'}).join('')
-    +'</tbody></table><div class="row" style="margin:10px 0"><b class="g">Total</b><b class="big">'+cop(p.total)+'</b></div>';
+    +'</tbody></table><div class="row" style="margin:10px 0"><b class="g">Total</b><b class="big">'+cop(p.total)+'</b></div>'+descuentosHtml(p);
   if(p.revisado_por)h+='<div class="mut">'+esc(p.revisado_por)+'</div>';
   if(extra&&extra.faltantes)h+='<div class="warn"><b>No alcanza el stock:</b><br>'+extra.faltantes.map(function(f){return esc(f.nombre)+': pide '+f.pide+', hay '+f.hay}).join('<br>')+'<br>Aprueba solo si ya lo confirmaste con bodega.</div>';
   if(S.rol==='gerente'||S.rol==='administrador'){
@@ -348,10 +355,21 @@ function vistaAjustes(){
     $('#app').innerHTML='<h2>Ajustes</h2><div class="card"><b>WhatsApp de Detal</b><div class="mut">Adonde llegan los pedidos del catálogo Detal.</div><form class="row" id="fW" style="margin-top:8px"><input class="g" id="aWa" value="'+esc(r.whatsapp_detal)+'" inputmode="numeric" maxlength="12"><button class="btn mini" type="submit">Guardar</button></form></div>'
       +'<div class="card"><b>Pedido mínimo</b><div class="mut">En pesos. No se puede enviar un pedido por debajo.'+(adm?'':' Solo lo cambia el administrador.')+'</div><form class="row" id="fM" style="margin-top:8px"><input class="g" id="aMin" value="'+esc(r.pedido_minimo)+'" inputmode="numeric" '+(adm?'':'disabled')+'><button class="btn mini" type="submit" '+(adm?'':'disabled')+'>Guardar</button></form></div>'
       +'<div class="card"><b>Pocas unidades</b><div class="mut">Con este número o menos se muestra «Quedan N» en el catálogo.</div><form class="row" id="fU" style="margin-top:8px"><input class="g" id="aPoc" value="'+esc(r.pocas_unidades)+'" inputmode="numeric" '+(adm?'':'disabled')+'><button class="btn mini" type="submit" '+(adm?'':'disabled')+'>Guardar</button></form></div>'
+      +'<div class="card"><b>Descuentos de referencia</b><div class="mut">Se muestran en cada pedido para que Juan Carlos los aplique al facturar. No cambian el total ni se muestran al cliente.'+(adm?'':' Solo el administrador los cambia.')+'</div>'
+        +'<form class="row" id="fDV" style="margin-top:8px"><span class="g">Por volumen, desde (unidades de un mismo producto)</span><input style="max-width:110px" id="aDV" value="'+esc(r.descuento_volumen_desde)+'" inputmode="numeric" '+(adm?'':'disabled')+'><button class="btn mini" type="submit" '+(adm?'':'disabled')+'>Guardar</button></form>'
+        +'<form class="row" id="fDP" style="margin-top:8px"><span class="g">Por volumen, porcentaje</span><input style="max-width:110px" id="aDP" value="'+esc(r.descuento_volumen_pct)+'" inputmode="numeric" '+(adm?'':'disabled')+'><button class="btn mini" type="submit" '+(adm?'':'disabled')+'>Guardar</button></form>'
+        +'<form class="row" id="fPP" style="margin-top:8px"><span class="g">Pronto pago Kerasolis, porcentaje</span><input style="max-width:110px" id="aPP" value="'+esc(r.descuento_pronto_pago_kerasolis_pct)+'" inputmode="numeric" '+(adm?'':'disabled')+'><button class="btn mini" type="submit" '+(adm?'':'disabled')+'>Guardar</button></form></div>'
       +'<div class="card"><b>Cambiar mi PIN</b><form class="fld" id="fC"><label>PIN actual<input id="cA" type="password" inputmode="numeric" maxlength="6" autocomplete="current-password"></label><label>PIN nuevo<input id="cN" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password"></label><button class="btn mini" type="submit" style="justify-self:start">Cambiar PIN</button></form></div>';
     var guardar=function(clave,id){return function(e){e.preventDefault();api('guardarAjuste',{clave:clave,valor:$(id).value},nuevaLlave()).then(function(x){toast((x&&x.message)||'No se pudo')})}};
-    $('#fW').onsubmit=guardar('whatsapp_detal','#aWa');$('#fM').onsubmit=guardar('pedido_minimo','#aMin');$('#fU').onsubmit=guardar('pocas_unidades','#aPoc');
+    $('#fW').onsubmit=guardar('whatsapp_detal','#aWa');$('#fM').onsubmit=guardar('pedido_minimo','#aMin');$('#fU').onsubmit=guardar('pocas_unidades','#aPoc');$('#fDV').onsubmit=guardar('descuento_volumen_desde','#aDV');$('#fDP').onsubmit=guardar('descuento_volumen_pct','#aDP');$('#fPP').onsubmit=guardar('descuento_pronto_pago_kerasolis_pct','#aPP');
     $('#fC').onsubmit=function(e){e.preventDefault();api('cambiarPin',{actual:$('#cA').value,nuevo:$('#cN').value},nuevaLlave()).then(function(x){toast((x&&x.message)||'No se pudo');if(x&&x.ok){$('#cA').value='';$('#cN').value=''}})};
+    api('estadoRespaldo',{}).then(function(d){
+      if(!d||!d.ok)return;
+      var cont=document.createElement('div');cont.className='card';
+      cont.innerHTML='<b>Respaldo de la hoja</b> <span class="pill '+(d.activo?'p-APROBADO':'p-RECHAZADO')+'">'+(d.activo?'al día':'sin respaldo reciente')+'</span><div class="mut">Cada lunes a las 6 a. m. se guarda una copia en «Catálogo Distrisander / 07 Respaldos» (las últimas 8).</div><div class="mut" style="margin-top:6px">'+(d.ultimo?'Último respaldo: '+esc(d.ultimo)+' (hace '+d.haceDias+' días) · '+d.guardados+' guardados':'Todavía no hay ninguno.')+(d.activo?'':' · Se enciende ejecutando ACTIVAR_RESPALDO() en Apps Script.')+'</div>'+(adm?'<div class="row" style="margin-top:8px"><button class="btn s mini" id="respAhora">Respaldar ahora</button></div>':'');
+      $('#app').appendChild(cont);
+      var rb=$('#respAhora');if(rb)rb.onclick=function(){rb.disabled=true;rb.textContent='Guardando…';api('respaldarAhora',{}).then(function(x){rb.disabled=false;rb.textContent='Respaldar ahora';toast((x&&x.message)||'No se pudo respaldar')}).catch(function(){rb.disabled=false;rb.textContent='Respaldar ahora';toast('No pudimos conectar')})};
+    });
     api('estadoDespertador',{}).then(function(d){
       if(!d||!d.ok)return;
       var txt=d.ultimo?('Último aviso hace '+d.haceMin+' min · '+d.catalogos+' catálogos listos · '+d.ms+' ms'):'Todavía no ha corrido.';
@@ -362,10 +380,10 @@ function vistaAjustes(){
   });
 }
 
-/* ——— Stock (solo administrador): Excel de Factusol de cada lunes ——— */
+/* ——— Stock (solo administrador): carga semanal de Factusol (reemplaza) o restock (suma) ——— */
 var XLSX_URL='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
 function cargarXlsx(){return new Promise(function(ok,no){if(window.XLSX)return ok();var s=document.createElement('script');s.src=XLSX_URL;s.onload=ok;s.onerror=function(){no(new Error('No se pudo cargar el lector de Excel'))};document.head.appendChild(s)})}
-var FILAS=null;
+var FILAS=null,MODO_STOCK='semanal';
 /* Números como se escriben en Colombia: «1.200» son mil doscientos y «12,5» es doce y medio (un texto así no debe leerse como 1,2). */
 function aNumero(v){
   if(typeof v==='number')return isFinite(v)?v:0;
@@ -376,24 +394,37 @@ function aNumero(v){
   var n=Number(s);return isFinite(n)?n:0;
 }
 function vistaStock(){
-  $('#app').innerHTML='<h2>Cargar stock de Factusol</h2><div class="card"><p class="mut">Cada lunes (o el primer día hábil): sube el Excel que exporta Factusol. Reemplaza el stock anterior y reinicia el descuento de pedidos aprobados. Los códigos deben existir en la hoja Productos.</p>'
-    +'<label class="fld"><span class="mut">Archivo Excel (.xlsx, .xls) o CSV</span><input type="file" id="fArch" accept=".xlsx,.xls,.csv"></label><div id="stBody"></div></div>';
-  $('#fArch').onchange=function(){
-    var f=this.files[0];if(!f)return;
-    $('#stBody').innerHTML='<p class="mut">Leyendo…</p>';
-    cargarXlsx().then(function(){return f.arrayBuffer()}).then(function(buf){
-      var wb=XLSX.read(buf,{type:'array'}),ws=wb.Sheets[wb.SheetNames[0]],filas=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
-      var head=0;while(head<filas.length&&filas[head].filter(function(c){return String(c).trim()}).length<2)head++;
-      FILAS={cab:filas[head].map(String),datos:filas.slice(head+1)};mapaColumnas();
-    }).catch(function(e){$('#stBody').innerHTML='<div class="err">'+esc(e.message||'No se pudo leer el archivo')+'</div>'});
-  };
+  $('#app').innerHTML='<h2>Stock</h2><div class="empty">Cargando…</div>';
+  api('estadoStock',{}).then(function(e){
+    var est=(e&&e.ok)?e:{ultimaCarga:null,ultimoRestock:null,restocksMes:0,restocksIncluidos:3};
+    var lleno=est.restocksMes>=est.restocksIncluidos;
+    $('#app').innerHTML='<h2>Stock</h2><div class="card"><div class="mut">Última carga semanal: <b>'+esc(est.ultimaCarga||'ninguna todavía')+'</b></div><div class="mut">Último restock: <b>'+esc(est.ultimoRestock||'ninguno')+'</b></div>'
+      +'<div class="mut">Restocks este mes: <b>'+est.restocksMes+' de '+est.restocksIncluidos+'</b> incluidos en el soporte'+(lleno?' <span class="pill p-POR_APROBAR">límite del mes alcanzado</span>':'')+'</div></div>'
+      +'<div class="chips"><button class="chip'+(MODO_STOCK==='semanal'?' on':'')+'" data-m="semanal">Carga semanal de Factusol</button><button class="chip'+(MODO_STOCK==='restock'?' on':'')+'" data-m="restock">Restock (mercancía nueva)</button></div>'
+      +'<div class="card"><p class="mut">'+(MODO_STOCK==='semanal'
+        ?'Cada lunes (o el primer día hábil): sube el Excel que exporta Factusol. <b>REEMPLAZA</b> todo el stock y reinicia el descuento de los pedidos aprobados. Los códigos deben existir en Productos.'
+        :'Cuando llega mercancía nueva entre un lunes y otro: sube el Excel con las unidades que <b>LLEGARON</b>. Se <b>SUMAN</b> al stock actual; no se reinicia nada y lo aprobado sigue descontado.')+'</p>'
+      +'<label class="fld"><span class="mut">Archivo Excel (.xlsx, .xls) o CSV</span><input type="file" id="fArch" accept=".xlsx,.xls,.csv"></label><div id="stBody"></div></div>';
+    $('#app').onclick=function(ev){var c=ev.target.closest('.chip');if(c&&c.dataset.m){MODO_STOCK=c.dataset.m;FILAS=null;vistaStock()}};
+    $('#fArch').onchange=function(){
+      var f=this.files[0];if(!f)return;
+      $('#stBody').innerHTML='<p class="mut">Leyendo…</p>';
+      cargarXlsx().then(function(){return f.arrayBuffer()}).then(function(buf){
+        var wb=XLSX.read(buf,{type:'array'}),ws=wb.Sheets[wb.SheetNames[0]],filas=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+        var head=0;while(head<filas.length&&filas[head].filter(function(c){return String(c).trim()}).length<2)head++;
+        FILAS={cab:filas[head].map(String),datos:filas.slice(head+1)};mapaColumnas();
+      }).catch(function(e){$('#stBody').innerHTML='<div class="err">'+esc(e.message||'No se pudo leer el archivo')+'</div>'});
+    };
+  }).catch(function(){$('#app').innerHTML='<div class="err">No pudimos conectar.</div>'});
 }
 function mapaColumnas(){
   var cab=FILAS.cab,ic=0,iu=1;
   cab.forEach(function(c,i){if(/c[oó]d|referen|art[ií]culo/i.test(c)&&!ic)ic=i;});
-  cab.forEach(function(c,i){if(/stock|exist|unid|cant/i.test(c)&&i!==ic)iu=i});
+  cab.forEach(function(c,i){if(/stock|exist|unid|cant|lleg/i.test(c)&&i!==ic)iu=i});
   var op=function(sel){return cab.map(function(c,i){return '<option value="'+i+'"'+(i===sel?' selected':'')+'>'+esc(c||('Columna '+(i+1)))+'</option>'}).join('')};
-  $('#stBody').innerHTML='<div class="two fld"><label>Columna del código<select id="cC">'+op(ic)+'</select></label><label>Columna de unidades<select id="cU">'+op(iu)+'</select></label></div><div id="stPrev"></div><button class="btn" id="stGo" style="margin-top:10px">Cargar stock</button><div id="stRes"></div>';
+  var restock=MODO_STOCK==='restock';
+  $('#stBody').innerHTML='<div class="two fld"><label>Columna del código<select id="cC">'+op(ic)+'</select></label><label>Columna de '+(restock?'unidades que llegaron':'unidades')+'<select id="cU">'+op(iu)+'</select></label></div><div id="stPrev"></div>'
+    +'<div class="row" style="margin-top:10px"><button class="btn" id="stGo">'+(restock?'Revisar el restock':'Cargar stock')+'</button></div><div id="stRes"></div>';
   var prev=function(){
     var c=Number($('#cC').value),u=Number($('#cU').value);
     var datos=FILAS.datos.map(function(f){return {codigo:String(f[c]==null?'':f[c]).trim(),unidades:aNumero(f[u])}}).filter(function(x){return x.codigo});
@@ -402,13 +433,36 @@ function mapaColumnas(){
   };
   $('#cC').onchange=prev;$('#cU').onchange=prev;prev();
   $('#stGo').onclick=function(){
-    var b=this;b.disabled=true;b.textContent='Cargando…';
-    api('cargarStock',{filas:FILAS.salida},nuevaLlave()).then(function(r){
-      b.disabled=false;b.textContent='Cargar stock';
-      if(!r||!r.ok){$('#stRes').innerHTML='<div class="err">'+esc((r&&r.message)||'No se pudo cargar')+(r&&r.desconocidos&&r.desconocidos.length?'<br>Códigos que no existen: '+esc(r.desconocidos.join(', ')):'')+'</div>';return}
-      $('#stRes').innerHTML='<div class="warn" style="background:#dff3e4;color:var(--ok)">'+esc(r.message)+(r.repetidos?' · '+r.repetidos+' códigos repetidos se sumaron.':'')+'</div>'+(r.desconocidos&&r.desconocidos.length?'<div class="warn">No existen en Productos: '+esc(r.desconocidos.join(', '))+'</div>':'');
-    }).catch(function(){b.disabled=false;b.textContent='Cargar stock';$('#stRes').innerHTML='<div class="err">No pudimos conectar.</div>'});
+    if(restock)return revisarRestock();
+    preguntar('Esto REEMPLAZA todo el stock actual con las '+FILAS.salida.length+' filas del archivo y reinicia el descuento de los pedidos aprobados. ¿Continuar?',function(){enviarSemanal()});
   };
+}
+function enviarSemanal(){
+  var b=$('#stGo');b.disabled=true;b.textContent='Cargando…';
+  api('cargarStock',{filas:FILAS.salida},nuevaLlave()).then(function(r){
+    b.disabled=false;b.textContent='Cargar stock';
+    if(!r||!r.ok){$('#stRes').innerHTML='<div class="err">'+esc((r&&r.message)||'No se pudo cargar')+(r&&r.desconocidos&&r.desconocidos.length?'<br>Códigos que no existen: '+esc(r.desconocidos.join(', ')):'')+'</div>';return}
+    $('#stRes').innerHTML='<div class="warn" style="background:#dff3e4;color:var(--ok)">'+esc(r.message)+(r.repetidos?' · '+r.repetidos+' códigos repetidos se sumaron.':'')+'</div>'+(r.desconocidos&&r.desconocidos.length?'<div class="warn">No existen en Productos: '+esc(r.desconocidos.join(', '))+'</div>':'');
+  }).catch(function(){b.disabled=false;b.textContent='Cargar stock';$('#stRes').innerHTML='<div class="err">No pudimos conectar.</div>'});
+}
+function revisarRestock(){
+  var b=$('#stGo');b.disabled=true;
+  api('sumarStock',{filas:FILAS.salida,modo:'validar'}).then(function(r){
+    b.disabled=false;
+    if(!r||!r.ok){$('#stRes').innerHTML='<div class="err">'+esc((r&&r.message)||'No se pudo revisar')+(r&&r.desconocidos&&r.desconocidos.length?'<br>Códigos que no existen: '+esc(r.desconocidos.join(', ')):'')+'</div>';return}
+    $('#stRes').innerHTML='<div class="warn" style="background:#dff3e4;color:var(--ok)">'+esc(r.message)+'</div>'
+      +'<table><thead><tr><th>Código</th><th class="r">Hay</th><th class="r">Llegan</th><th class="r">Quedarán</th></tr></thead><tbody>'+r.detalle.map(function(d){return '<tr><td>'+esc(d.codigo)+'</td><td class="r">'+d.antes+'</td><td class="r">+'+d.suma+'</td><td class="r"><b>'+d.despues+'</b></td></tr>'}).join('')+'</tbody></table>'
+      +(r.productos>r.detalle.length?'<p class="mut">Se muestran los primeros '+r.detalle.length+' de '+r.productos+'.</p>':'')
+      +(r.desconocidos.length?'<div class="warn">No existen en Productos y se ignoran: '+esc(r.desconocidos.join(', '))+'</div>':'')
+      +'<div class="row" style="margin-top:10px"><button class="btn ok" id="stApl">Aplicar restock</button></div>';
+    $('#stApl').onclick=function(){
+      var a=this;a.disabled=true;a.textContent='Aplicando…';
+      api('sumarStock',{filas:FILAS.salida,modo:'aplicar'},nuevaLlave()).then(function(x){
+        if(!x||!x.ok){a.disabled=false;a.textContent='Aplicar restock';toast((x&&x.message)||'No se pudo aplicar');return}
+        $('#stRes').innerHTML='<div class="warn" style="background:#dff3e4;color:var(--ok)">'+esc(x.message)+'</div>';toast('Restock cargado');
+      }).catch(function(){a.disabled=false;a.textContent='Aplicar restock';toast('No pudimos conectar')});
+    };
+  }).catch(function(){b.disabled=false;$('#stRes').innerHTML='<div class="err">No pudimos conectar.</div>'});
 }
 
 /* ——— Productos y precios ——— */
@@ -612,6 +666,72 @@ function pintarReporte(soloPeriodo){
     +(cl.length?'<table><thead><tr><th>Cliente</th><th class="r">Pedidos</th><th class="r">Compró</th></tr></thead><tbody>'+cl.slice(0,25).map(function(c){
       return '<tr><td><b>'+esc(c.negocio)+'</b><div class="mut">'+esc(c.telefono)+' · '+esc(c.vendedores.join(' / '))+'</div><span class="pill '+(c.regularidad==='Muy frecuente'?'p-APROBADO':c.regularidad==='Mensual'?'p-POR_APROBAR':'n')+'">'+esc(c.regularidad)+'</span> <span class="mut">'+(c.intervaloDias!=null?'cada '+c.intervaloDias+' días · ':'')+'último hace '+c.diasDesdeUltimo+' días</span></td><td class="r">'+c.pedidos+'</td><td class="r">'+cop(c.ventas)+'<div class="mut">ticket '+cop(c.ticket)+'</div></td></tr>'}).join('')+'</tbody></table>':'<div class="empty">Ningún cliente en esta lista.</div>')+'</div>';
   $('#app').innerHTML=h;ligarPeriodo();
+}
+
+/* ——— Marcas y banners ——— */
+var MB={marcas:[],banners:[],puedeMarcas:false};
+function vistaMarcas(){
+  $('#app').innerHTML='<h2>Marcas y banners</h2><div class="empty">Cargando…</div>';
+  api('listarMarcasBanners',{}).then(function(r){
+    if(!r||!r.ok){$('#app').innerHTML='<div class="err">'+esc((r&&r.message)||'No se pudieron leer.')+'</div>';return}
+    MB={marcas:r.marcas,banners:r.banners,puedeMarcas:r.puedeMarcas};pintarMarcas();
+  }).catch(function(){$('#app').innerHTML='<div class="err">No pudimos conectar.</div>'});
+}
+function pintarMarcas(){
+  var hoy=fTxt(new Date());
+  var vigente=function(b){return b.activo&&(!b.desde||b.desde<=hoy)&&(!b.hasta||b.hasta>=hoy)};
+  var h='<div class="row"><h2 class="g">Banners de la portada</h2><button class="btn mini" id="nuevoB">Nuevo banner</button></div><p class="mut">Las promociones que rotan arriba del catálogo. Un banner no se borra: se apaga. La imagen es opcional (sin imagen se muestra el texto sobre fondo negro y dorado).</p>';
+  h+=MB.banners.length?MB.banners.map(function(b){
+    return '<div class="card pedido '+(b.activo?'':'off')+'" data-b="'+b.orden+'"><div class="row"><div class="g"><b>'+esc(b.titulo)+'</b><div class="mut">'+(b.desde||'sin fecha de inicio')+' → '+(b.hasta||'sin fecha final')+(b.imagen?' · '+esc(b.imagen):'')+'</div></div>'
+      +(vigente(b)?'<span class="pill p-APROBADO">se muestra hoy</span>':b.activo?'<span class="pill n">fuera de fechas</span>':'<span class="pill p-RECHAZADO">apagado</span>')+'</div></div>'}).join(''):'<div class="empty">Todavía no hay banners.</div>';
+  h+='<div class="row" style="margin-top:22px"><h2 class="g">Marcas</h2>'+(MB.puedeMarcas?'<button class="btn mini" id="nuevaM">Nueva marca</button>':'')+'</div>'+(MB.puedeMarcas?'':'<p class="mut">Solo el administrador cambia las marcas.</p>');
+  h+=MB.marcas.map(function(m){
+    return '<div class="card '+(MB.puedeMarcas?'pedido':'')+'" data-m="'+esc(m.marca)+'"><div class="row"><div class="g"><b>'+esc(m.marca)+'</b><div class="mut">Orden '+m.orden+(m.descripcion?' · '+esc(m.descripcion):'')+(m.logo?' · logo '+esc(m.logo):'')+'</div></div></div></div>'}).join('');
+  $('#app').innerHTML=h;
+  $('#app').onclick=function(e){
+    if(e.target.closest('#nuevoB'))return formBanner();
+    if(e.target.closest('#nuevaM'))return formMarca();
+    var b=e.target.closest('[data-b]');if(b)return formBanner(Number(b.dataset.b));
+    var m=e.target.closest('[data-m]');if(m&&MB.puedeMarcas)formMarca(m.dataset.m);
+  };
+}
+function formBanner(orden){
+  var nuevo=orden===undefined,b=nuevo?{orden:0,titulo:'',imagen:'',desde:'',hasta:'',activo:true}:MB.banners.filter(function(x){return x.orden===orden})[0];
+  if(!b)return;
+  modal('<div class="row"><h2 class="g" style="margin:0">'+(nuevo?'Nuevo banner':'Editar banner')+'</h2><button class="btn s mini" id="cerr">Cerrar</button></div>'
+    +'<form class="fld" id="fB"><label>Texto del banner<input id="bTit" value="'+esc(b.titulo)+'" maxlength="80" placeholder="Ej. Black Friday: 10 % en Kerasolis"></label>'
+    +'<label>Imagen (opcional, nombre del archivo)<input id="bImg" value="'+esc(b.imagen)+'" maxlength="60" placeholder="black-friday.jpg"></label>'
+    +'<div class="two"><label>Desde<input type="date" id="bDes" value="'+esc(b.desde)+'"></label><label>Hasta<input type="date" id="bHas" value="'+esc(b.hasta)+'"></label></div>'
+    +'<label>Estado<select id="bAct"><option value="1"'+(b.activo?' selected':'')+'>Activo</option><option value="0"'+(b.activo?'':' selected')+'>Apagado</option></select></label>'
+    +'<p class="mut">Dejar una fecha vacía significa «sin límite». El banner se muestra solo dentro de sus fechas.</p><div id="bErr"></div>'
+    +'<div class="row"><button class="btn" type="submit">Guardar</button><button class="btn s" type="button" id="no">Cancelar</button></div></form>');
+  $('#cerr').onclick=cerrar;$('#no').onclick=cerrar;
+  $('#fB').onsubmit=function(e){
+    e.preventDefault();var s=this.querySelector('button[type=submit]');s.disabled=true;
+    api('guardarBanner',{banner:{orden:b.orden,titulo:$('#bTit').value,imagen:$('#bImg').value.trim(),desde:$('#bDes').value,hasta:$('#bHas').value,activo:$('#bAct').value==='1'},crear:nuevo},nuevaLlave()).then(function(r){
+      s.disabled=false;
+      if(!r||!r.ok){var m={titulo:'#bTit',imagen:'#bImg',desde:'#bDes',hasta:'#bHas'}[r&&r.campo];if(m)marcar($(m));$('#bErr').innerHTML='<div class="err">'+esc((r&&r.message)||'No se pudo guardar')+'</div>';return}
+      cerrar();toast(r.message);vistaMarcas();
+    }).catch(function(){s.disabled=false;$('#bErr').innerHTML='<div class="err">No pudimos conectar.</div>'});
+  };
+}
+function formMarca(nombre){
+  var nueva=nombre===undefined,m=nueva?{marca:'',logo:'',orden:MB.marcas.length+1,descripcion:''}:MB.marcas.filter(function(x){return x.marca===nombre})[0];
+  if(!m)return;
+  modal('<div class="row"><h2 class="g" style="margin:0">'+(nueva?'Nueva marca':esc(m.marca))+'</h2><button class="btn s mini" id="cerr">Cerrar</button></div>'
+    +'<form class="fld" id="fM2"><label>Nombre de la marca<input id="mNom" value="'+esc(m.marca)+'" maxlength="40" '+(nueva?'':'readonly')+'></label>'
+    +'<label>Descripción corta (opcional)<input id="mDes" value="'+esc(m.descripcion)+'" maxlength="80" placeholder="Ej. Maquillaje"></label>'
+    +'<div class="two"><label>Orden en el catálogo<input id="mOrd" value="'+m.orden+'" inputmode="numeric"></label><label>Logo (nombre del archivo, opcional)<input id="mLog" value="'+esc(m.logo)+'" maxlength="60" placeholder="kerasolis.png"></label></div>'
+    +'<div id="mErr"></div><div class="row"><button class="btn" type="submit">Guardar</button><button class="btn s" type="button" id="no">Cancelar</button></div></form>');
+  $('#cerr').onclick=cerrar;$('#no').onclick=cerrar;
+  $('#fM2').onsubmit=function(e){
+    e.preventDefault();var s=this.querySelector('button[type=submit]');s.disabled=true;
+    api('guardarMarca',{marca:{marca:$('#mNom').value,descripcion:$('#mDes').value,orden:aNumero($('#mOrd').value),logo:$('#mLog').value.trim()},crear:nueva},nuevaLlave()).then(function(r){
+      s.disabled=false;
+      if(!r||!r.ok){var x={marca:'#mNom',logo:'#mLog',orden:'#mOrd'}[r&&r.campo];if(x)marcar($(x));$('#mErr').innerHTML='<div class="err">'+esc((r&&r.message)||'No se pudo guardar')+'</div>';return}
+      cerrar();toast(r.message);vistaMarcas();
+    }).catch(function(){s.disabled=false;$('#mErr').innerHTML='<div class="err">No pudimos conectar.</div>'});
+  };
 }
 
 /* ——— Inicio ——— */
