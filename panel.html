@@ -97,8 +97,8 @@ main{padding:18px max(14px,env(safe-area-inset-left,0px)) 24px max(14px,env(safe
   .brand b{display:block;font:600 1.25rem/1.1 var(--disp);letter-spacing:.01em}
   .brand small{display:block;color:#c9c1af;font-size:0.75rem;margin-top:3px}
   .side nav{flex:1}
-  .grp{margin:18px 8px 6px;font-size:0.6875rem;letter-spacing:.14em;text-transform:uppercase;color:#b3ab98;font-weight:600}
-  .side nav button{width:100%;display:flex;align-items:center;gap:12px;border:0;background:none;color:#d9d1bf;padding:0 12px;min-height:44px;border-radius:12px;font-weight:500;text-align:left;position:relative}
+  .grp{margin:12px 8px 4px;font-size:0.6875rem;letter-spacing:.14em;text-transform:uppercase;color:#b3ab98;font-weight:600}
+  .side nav button{width:100%;display:flex;align-items:center;gap:12px;border:0;background:none;color:#d9d1bf;padding:0 12px;min-height:40px;border-radius:12px;font-weight:500;text-align:left;position:relative}
   .side nav button .n{margin-left:auto}
   .side nav button:hover{background:rgba(255,255,255,.07);color:#fff}
   .side nav button:hover .ic{transform:translateX(2px)}
@@ -443,6 +443,13 @@ input[type=file]::file-selector-button{border:0;border-radius:99px;background:li
   .im-t tr{break-inside:avoid}
 }
 .prev{white-space:pre-wrap;word-break:break-word;background:#fff;border:1px solid var(--line2);border-radius:14px;padding:12px 14px;font:.875rem/1.5 inherit;max-height:46vh;overflow:auto;margin:8px 0}
+/* Registro */
+.rg{padding:12px 14px}.rg .top{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.rg .fe{margin-left:auto;color:var(--mut);font-size:.75rem}
+.rg .det{margin-top:6px;line-height:1.4;word-break:break-word}.rg .qh{background:#fffaf0;border:1px solid #ecd9a8;border-radius:12px;padding:8px 10px;margin-top:8px;font-size:.875rem}
+.rg details{margin-top:6px}.rg summary{cursor:pointer;color:var(--mut);font-size:.8125rem;min-height:32px;display:flex;align-items:center}.rg pre{white-space:pre-wrap;word-break:break-word;font-size:.75rem;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px;margin:4px 0 0}
+.rg .inc{font:600 .75rem ui-monospace,Menlo,Consolas,monospace;color:var(--mut)}
+.nvl-ERROR{background:#fbe6e3;color:#7f1d1d}.nvl-AVISO{background:#fdeed0;color:#6b4a00}.nvl-SEGURIDAD{background:#e8e4f5;color:#3b2f7a}.nvl-CLIENTE{background:#e4eef8;color:#0d3b66}
+.resumen24{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}.resumen24 div{flex:1 1 120px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px}.resumen24 b{display:block;font:600 1.375rem var(--disp)}.resumen24 span{color:var(--mut);font-size:.75rem}
 /* Precios por lista */
 .formas{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin:6px 0 14px}
 .forma{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px}.forma b{display:block;font:600 1rem var(--disp);margin-bottom:2px}.forma span{color:var(--mut);font-size:.8125rem;line-height:1.4}
@@ -524,6 +531,7 @@ input[type=file]::file-selector-button{border:0;border-radius:99px;background:li
 <symbol id="i-share" viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="m8.2 10.8 7.6-3.6M8.2 13.2l7.6 3.6"/></symbol>
 <symbol id="i-buscar" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></symbol>
 <symbol id="i-precios" viewBox="0 0 24 24"><path d="M3 12V4h8l9 9-8 8z"/><circle cx="7.5" cy="8.5" r="1.3"/></symbol>
+<symbol id="i-registro" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9zM8.5 11h7M8.5 15h7"/></symbol>
 <symbol id="i-print" viewBox="0 0 24 24"><path d="M7 9V4h10v5"/><rect x="4" y="9" width="16" height="8" rx="2"/><path d="M8 14h8v6H8z"/></symbol>
 </defs></svg>
 <div class="shell">
@@ -564,6 +572,28 @@ var S={token:'',usuario:'',rol:'',tab:'pedidos',filtro:'POR_APROBAR',pedidos:[],
 try{var g=JSON.parse(localStorage.getItem('ds_panel')||'null');if(g){S.token=g.token;S.usuario=g.usuario;S.rol=g.rol}}catch(e){}
 
 /* ——— Servidor (misma lógica que el catálogo: reintentos y llave anti-duplicado) ——— */
+function hace(t){var m=Math.floor((Date.now()-t)/60000);return m<1?'ahora':m===1?'hace 1 min':m<60?'hace '+m+' min':'hace más de 1 h'}
+/* ——— Registro de fallas: los errores de pantalla y de conexión se anotan en la hoja «Errores» del servidor (evidencia para soporte) ——— */
+var FALLAS={cola:[],enviando:false};
+try{FALLAS.cola=JSON.parse(localStorage.getItem('ds_fallas')||'[]')||[]}catch(e){}
+function guardarFallas(){try{localStorage.setItem('ds_fallas',JSON.stringify(FALLAS.cola.slice(-10)))}catch(e){}}
+function anotarFalla(accion,mensaje,detalle){
+  mensaje=String(mensaje||'').slice(0,200);if(!mensaje)return;
+  if(FALLAS.cola.some(function(f){return f.a===accion&&f.m===mensaje&&Date.now()-f.t<600000}))return;   // lo mismo no se anota dos veces seguidas
+  FALLAS.cola.push({t:Date.now(),a:String(accion||'').slice(0,60),m:mensaje,d:String(detalle||'').slice(0,400)});FALLAS.cola=FALLAS.cola.slice(-10);guardarFallas();
+}
+function enviarFallas(){
+  if(FALLAS.enviando||!FALLAS.cola.length||navigator.onLine===false)return;
+  FALLAS.enviando=true;var it=FALLAS.cola[0];
+  fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow',cache:'no-store',
+    body:JSON.stringify({action:'reportarError',data:{origen:'panel',accion:it.a,mensaje:it.m+' · '+hace(it.t),detalle:it.d+' · '+location.pathname+' · '+(navigator.onLine?'en línea':'sin conexión')+' · '+navigator.userAgent.slice(0,90)},token:S.token})})
+    .then(function(r){return r.text()}).then(function(t){var j;try{j=JSON.parse(t)}catch(e){j=null}FALLAS.enviando=false;if(j&&j.ok!==undefined){FALLAS.cola.shift();guardarFallas();if(FALLAS.cola.length)setTimeout(enviarFallas,800)}})
+    .catch(function(){FALLAS.enviando=false});
+}
+window.addEventListener('error',function(e){if(/ResizeObserver/.test(e.message||''))return;anotarFalla('pantalla',e.message||'Error de pantalla',(e.filename||'').split('/').pop()+':'+e.lineno+':'+e.colno+' '+((e.error&&e.error.stack)||'').slice(0,260))});
+window.addEventListener('unhandledrejection',function(e){var r=e.reason;anotarFalla('pantalla','Promesa sin manejar: '+((r&&r.message)||r),((r&&r.stack)||'').slice(0,300))});
+window.addEventListener('online',function(){setTimeout(enviarFallas,1500)});
+setTimeout(enviarFallas,4000);
 function api(action,data,idem){
   var intento=0,enCurso=0;
   function una(){
@@ -577,13 +607,12 @@ function api(action,data,idem){
       .catch(function(e){clearTimeout(t);if(intento<3&&navigator.onLine!==false&&(!idem?isRead(action):true))return pausa(900*intento).then(una);throw e});
   }
   ocupar(1);
-  return una().then(function(j){EST.ult=Date.now();EST.error=false;ocupar(-1);if(j&&j.pinRequerido&&S.token){sesionVencida()}return j},function(e){EST.error=true;ocupar(-1);throw e});
+  return una().then(function(j){EST.ult=Date.now();EST.error=false;ocupar(-1);if(j&&j.pinRequerido&&S.token){sesionVencida()}if(FALLAS.cola.length)setTimeout(enviarFallas,1200);return j},function(e){EST.error=true;ocupar(-1);if(navigator.onLine!==false&&action!=='reportarError')anotarFalla(action,'No se pudo conectar con el servidor ('+((e&&e.message)||e)+')','en línea: '+navigator.onLine);throw e});
 }
 var OCUP=0,T_OCUP=null;
 function ocupar(d){OCUP=Math.max(0,OCUP+d);clearTimeout(T_OCUP);if(OCUP>0)T_OCUP=setTimeout(function(){document.body.classList.add('ocupado');pintarEstado()},250);else{document.body.classList.remove('ocupado');pintarEstado()}}
 /* Píldora de estado: refleja si los datos están al día, se están actualizando, cargando, sin conexión o con error */
 var EST={ult:0,refresh:false,error:false};
-function hace(t){var m=Math.floor((Date.now()-t)/60000);return m<1?'ahora':m===1?'hace 1 min':m<60?'hace '+m+' min':'hace más de 1 h'}
 function pintarEstado(){
   var e='ok',txt='Al día',det=EST.ult?hace(EST.ult):'';
   if(navigator.onLine===false){e='sin';txt='Sin conexión';det='se reintenta solo'}
@@ -704,9 +733,9 @@ function salir(){api('cerrarSesion',{}).catch(function(){});S.token='';S.product
 /* ——— Estructura ——— */
 var MENU=[['pedidos','Pedidos','i-pedidos','Aprueba y sigue cada pedido','op'],['productos','Productos','i-productos','Catálogo, precios y existencias','op'],['stock','Stock','i-stock','Carga semanal y restock','op','admin'],
   ['reportes','Reportes','i-reportes','Ventas por período, asesor y zona','an'],['precios','Precios','i-precios','Listado, margen o personalizado','cf'],['enlaces','Enlaces','i-enlaces','Un enlace por asesor y lista','cf'],['vendedores','Vendedores','i-vendedores','Asesores y su acceso','cf'],
-  ['marcas','Marcas y banners','i-marcas','Portada y marcas del catálogo','cf'],['ajustes','Ajustes','i-ajustes','Mínimo, descuentos, respaldo y PIN','cf']];
+  ['marcas','Marcas y banners','i-marcas','Portada y marcas del catálogo','cf'],['ajustes','Ajustes','i-ajustes','Mínimo, descuentos, respaldo y PIN','cf'],['registro','Registro','i-registro','Movimientos y errores del sistema','cf']];
 var GRUPOS={op:'Operación',an:'Análisis',cf:'Configuración'};
-var SUBS={pedidos:'Aprueba, rechaza y sigue cada pedido que llega por los enlaces.',productos:'Catálogo, precios por lista y existencias.',stock:'Carga semanal de Factusol y restock de mercancía nueva.',reportes:'Ventas aprobadas por período, asesor, zona y producto.',precios:'Cómo se arma el precio de cada lista: por listado, por margen o personalizado.',enlaces:'Un enlace por asesor y lista de precios.',vendedores:'Asesores, su WhatsApp y su acceso.',marcas:'Banners de la portada y marcas del catálogo.',ajustes:'Pedido mínimo, descuentos, respaldo y tu PIN.'};
+var SUBS={pedidos:'Aprueba, rechaza y sigue cada pedido que llega por los enlaces.',productos:'Catálogo, precios por lista y existencias.',stock:'Carga semanal de Factusol y restock de mercancía nueva.',reportes:'Ventas aprobadas por período, asesor, zona y producto.',precios:'Cómo se arma el precio de cada lista: por listado, por margen o personalizado.',enlaces:'Un enlace por asesor y lista de precios.',vendedores:'Asesores, su WhatsApp y su acceso.',marcas:'Banners de la portada y marcas del catálogo.',ajustes:'Pedido mínimo, descuentos, respaldo y tu PIN.',registro:'Quién cambió qué y cuándo, y todo lo que falló, para saber cómo actuar.'};
 function iconoSvg(id){return '<svg class="ic" aria-hidden="true"><use href="#'+id+'"/></svg>'}
 function arrancar(){
   document.body.classList.remove('sin-sesion');
@@ -739,9 +768,14 @@ function pintarTabs(){
   document.title=(n?'('+n+') ':'')+'Panel Distrisander';      // la pestaña del navegador avisa cuántos pedidos esperan
 }
 function animarVista(){var a=$('#app');a.classList.add('anim');clearTimeout(a._t);a._t=setTimeout(function(){a.classList.remove('anim')},1000)}
-var VERSION_PANEL='2026.11.12',SERVIDOR_MIN='2026.11.12';
+var VERSION_PANEL='2026.11.13',SERVIDOR_MIN='2026.11.13';
 /* Historial de cambios: cada entrega agrega aquí su entrada (la más nueva primero). Tipos: nuevo · mejora · arreglo */
 var CAMBIOS=[
+ {v:'2026.11.13',f:'25 de noviembre de 2026',t:'Registro de movimientos y errores',items:[
+  ['nuevo','Registro (menú): cada movimiento queda anotado (quién, qué, cuándo) y cada falla con un código de incidente y qué hacer. Se puede buscar, filtrar y descargar.'],
+  ['nuevo','Los accesos, los intentos fallidos, los permisos negados y los errores del despertador y del respaldo también quedan en el registro.'],
+  ['nuevo','El catálogo y el panel avisan solos sus errores de pantalla y de conexión, sin datos de clientes.'],
+  ['mejora','Si algo falla, el aviso trae el código del incidente para buscarlo en el registro.']]},
  {v:'2026.11.12',f:'25 de noviembre de 2026',t:'Zonas, tres formas de precio, metas y pedido más completo',items:[
   ['nuevo','Zonas: nombre propio para cada lista y ciudades y pueblos elegidos de la lista oficial (Santander, Norte de Santander, Arauca, Cesar, Boyacá y Antioquia). Una ciudad solo puede estar en una zona.'],
   ['nuevo','Precios: cada lista puede manejarse por listado, por margen (con el costo de cada producto) o con precios personalizados que no se tocan al recalcular.'],
@@ -844,7 +878,7 @@ document.addEventListener('click',function(e){
 });
 function vista(){
   if(!S.token)return;
-  ({pedidos:vistaPedidos,productos:vistaProductos,reportes:vistaReportes,precios:vistaPrecios,marcas:vistaMarcas,enlaces:vistaEnlaces,vendedores:vistaVendedores,ajustes:vistaAjustes,stock:vistaStock})[S.tab]();
+  ({pedidos:vistaPedidos,productos:vistaProductos,reportes:vistaReportes,precios:vistaPrecios,registro:vistaRegistro,marcas:vistaMarcas,enlaces:vistaEnlaces,vendedores:vistaVendedores,ajustes:vistaAjustes,stock:vistaStock})[S.tab]();
 }
 function nombreVend(id){if(id==='detal')return 'Detal';var v=S.vendedores.filter(function(x){return x.id===id})[0];return v?v.nombre:id}
 
@@ -1240,6 +1274,63 @@ function formPin(id){
     if(a!==b){marcar($('#pN2'));$('#pE').innerHTML='<div class="err">Los dos PIN no coinciden.</div>';return}
     api('configurarPin',{usuario:id,nuevo:a},nuevaLlave()).then(function(r){if(!r||!r.ok){$('#pE').innerHTML='<div class="err">'+esc((r&&r.message)||'No se pudo guardar')+'</div>';return}cerrar();toast('PIN guardado');vistaVendedores()});
   };
+}
+
+/* ——— Registro: movimientos (Auditoria) y errores ——— */
+var REG={tipo:'movimientos',nivel:'',q:'',datos:null,t:null};
+function vistaRegistro(){
+  var niveles=[['','Todos'],['ERROR','Errores'],['AVISO','Avisos'],['SEGURIDAD','Seguridad'],['CLIENTE','Pantalla y conexión']];
+  $('#app').innerHTML='<div class="row"><h2 class="g">Registro</h2><button class="btn s mini" id="rgCsv" type="button">Descargar CSV</button></div><p class="sub">'+esc(SUBS.registro)+'</p>'
+    +'<div class="chips" role="group" aria-label="Qué ver"><button class="chip'+(REG.tipo==='movimientos'?' on':'')+'" data-t="movimientos" aria-pressed="'+(REG.tipo==='movimientos')+'">Movimientos</button><button class="chip'+(REG.tipo==='errores'?' on':'')+'" data-t="errores" aria-pressed="'+(REG.tipo==='errores')+'">Errores</button></div>'
+    +(REG.tipo==='errores'?'<div class="chips" role="group" aria-label="Nivel">'+niveles.map(function(n){return '<button class="chip'+(REG.nivel===n[0]?' on':'')+'" data-n="'+n[0]+'" aria-pressed="'+(REG.nivel===n[0])+'">'+n[1]+'</button>'}).join('')+'</div>':'')
+    +'<input id="rgQ" type="search" placeholder="Buscar (nombre, acción, incidente, pedido…)" value="'+esc(REG.q)+'" autocomplete="off" aria-label="Buscar en el registro" style="width:100%;margin:8px 0"><div id="rgLista"><div class="skl" role="status" aria-label="Cargando"><i></i><i></i><i></i></div></div>';
+  $('#app').onclick=function(e){
+    var b=e.target.closest('button');if(!b)return;
+    if(b.dataset.t){REG.tipo=b.dataset.t;REG.nivel='';vistaRegistro();return}
+    if(b.dataset.n!==undefined){REG.nivel=b.dataset.n;vistaRegistro();return}
+    if(b.id==='rgCsv')return csvRegistro();
+    if(b.dataset.cp){var f=REG.datos&&REG.datos.filas[Number(b.dataset.cp)];if(f)copiar(textoSoporte(f))}
+  };
+  $('#rgQ').oninput=function(){REG.q=this.value;clearTimeout(REG.t);REG.t=setTimeout(listaRegistro,400)};
+  listaRegistro();
+}
+function listaRegistro(){
+  var cont=$('#rgLista');if(!cont)return;
+  api('leerRegistro',{tipo:REG.tipo,buscar:REG.q,nivel:REG.nivel,limite:150}).then(function(r){
+    if(!$('#rgLista'))return;
+    if(!r||!r.ok){$('#rgLista').innerHTML='<div class="err">'+esc((r&&r.message)||'No se pudo leer el registro.')+'</div>';return}
+    REG.datos=r;
+    var h='';
+    if(r.tipo==='errores'){
+      var rs=r.resumen,total=rs.errores24h+rs.avisos24h+rs.cliente24h;
+      h+='<div class="resumen24" aria-label="Últimas 24 horas"><div><b>'+rs.errores24h+'</b><span>errores del servidor (24 h)</span></div><div><b>'+rs.avisos24h+'</b><span>avisos y seguridad (24 h)</span></div><div><b>'+rs.cliente24h+'</b><span>fallas de pantalla o conexión (24 h)</span></div></div>';
+      if(!total)h+='<div class="ok2" role="status">Sin errores en las últimas 24 horas: todo en orden.</div>';
+    }
+    if(!r.filas.length){h+=vacio('i-registro',r.tipo==='errores'?'No hay errores con ese filtro':'No hay movimientos con ese filtro','Cuando algo cambie o falle, aparecerá aquí.')}
+    else h+='<p class="mut">Mostrando '+r.filas.length+' de '+r.total+' (lo más reciente primero).</p>'+r.filas.map(function(f,i){return r.tipo==='errores'?filaError(f,i):filaMov(f)}).join('');
+    $('#rgLista').innerHTML=h;
+  }).catch(function(){if($('#rgLista'))$('#rgLista').innerHTML='<div class="err">No pudimos conectar.</div>'});
+}
+function filaMov(f){
+  return '<div class="card rg"><div class="top"><span class="pill n">'+esc(f.accion)+'</span>'+(f.id?'<b>'+esc(f.id)+'</b>':'')+'<span class="fe">'+esc(f.fecha)+'</span></div>'
+    +(f.detalle?'<div class="det">'+esc(f.detalle)+'</div>':'')+'<div class="mut" style="margin-top:4px">'+esc(f.quien||'—')+(f.rol?' · '+esc(f.rol):'')+(f.version?' · v'+esc(f.version):'')+'</div></div>';
+}
+function filaError(f,i){
+  return '<div class="card rg"><div class="top"><span class="pill nvl-'+esc(f.nivel)+'">'+esc(f.nivel)+'</span><span class="pill n">'+esc(f.origen)+'</span><b>'+esc(f.accion)+'</b><span class="fe">'+esc(f.fecha)+'</span></div>'
+    +'<div class="det"><b>'+esc(f.mensaje)+'</b></div>'
+    +(f.que_hacer?'<div class="qh"><b>Qué hacer:</b> '+esc(f.que_hacer)+'</div>':'')
+    +(f.detalle?'<details><summary>Detalle técnico</summary><pre>'+esc(f.detalle)+'</pre></details>':'')
+    +'<div class="top" style="margin-top:8px"><span class="inc">'+esc(f.incidente)+'</span><span class="mut">'+esc(f.usuario||'sin sesión')+(f.rol?' · '+esc(f.rol):'')+' · v'+esc(f.version)+'</span><button class="btn s mini fe" type="button" data-cp="'+i+'" style="margin-left:auto">'+iconoSvg('i-copy')+'Copiar para soporte</button></div></div>';
+}
+function textoSoporte(f){
+  return 'Incidente '+f.incidente+' · '+f.fecha+'\nNivel: '+f.nivel+' · Origen: '+f.origen+' · Acción: '+f.accion+'\nUsuario: '+(f.usuario||'sin sesión')+(f.rol?' ('+f.rol+')':'')+' · Versión: '+f.version+'\nMensaje: '+f.mensaje+(f.detalle?'\nDetalle: '+f.detalle:'')+(f.que_hacer?'\nSugerencia: '+f.que_hacer:'');
+}
+function csvRegistro(){
+  var r=REG.datos;if(!r||!r.filas.length){toast('No hay filas para descargar');return}
+  var cols=r.tipo==='errores'?['fecha','incidente','nivel','origen','accion','usuario','rol','mensaje','detalle','que_hacer','version']:['fecha','accion','id','detalle','quien','rol','version'];
+  var cel=function(v){v=String(v==null?'':v);return /[",;\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+  var blob=new Blob([String.fromCharCode(65279)+[cols.join(';')].concat(r.filas.map(function(f){return cols.map(function(k){return cel(f[k])}).join(';')})).join('\r\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download='registro-'+r.tipo+'-'+fTxt(new Date())+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},2000);
 }
 
 /* ——— Precios por lista: listado, margen o personalizado ——— */

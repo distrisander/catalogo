@@ -298,6 +298,28 @@ var SES=null;                      // sesión de asesor (modo vendedor): {token,
 var CAT=null,P={},CART={},IDEM='',filtro='',ULT=null;
 
 /* ——— Servidor: reintentos con espera; el pedido lleva llave para que NUNCA se duplique (de KAÉM) ——— */
+function hace(t){var m=Math.floor((Date.now()-t)/60000);return m<1?'hace un momento':m===1?'hace 1 min':m<60?'hace '+m+' min':'hace más de 1 h'}
+/* ——— Registro de fallas: los errores de pantalla y de conexión se anotan en la hoja «Errores» del servidor (evidencia para soporte) ——— */
+var FALLAS={cola:[],enviando:false};
+try{FALLAS.cola=JSON.parse(localStorage.getItem('ds_fallas')||'[]')||[]}catch(e){}
+function guardarFallas(){try{localStorage.setItem('ds_fallas',JSON.stringify(FALLAS.cola.slice(-10)))}catch(e){}}
+function anotarFalla(accion,mensaje,detalle){
+  mensaje=String(mensaje||'').slice(0,200);if(!mensaje)return;
+  if(FALLAS.cola.some(function(f){return f.a===accion&&f.m===mensaje&&Date.now()-f.t<600000}))return;   // lo mismo no se anota dos veces seguidas
+  FALLAS.cola.push({t:Date.now(),a:String(accion||'').slice(0,60),m:mensaje,d:String(detalle||'').slice(0,400)});FALLAS.cola=FALLAS.cola.slice(-10);guardarFallas();
+}
+function enviarFallas(){
+  if(FALLAS.enviando||!FALLAS.cola.length||navigator.onLine===false)return;
+  FALLAS.enviando=true;var it=FALLAS.cola[0];
+  fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow',cache:'no-store',
+    body:JSON.stringify({action:'reportarError',data:{origen:'catalogo',accion:it.a,mensaje:it.m+' · '+hace(it.t),detalle:it.d+' · '+location.pathname+' · '+(navigator.onLine?'en línea':'sin conexión')+' · '+navigator.userAgent.slice(0,90)},token:SES?SES.token:undefined})})
+    .then(function(r){return r.text()}).then(function(t){var j;try{j=JSON.parse(t)}catch(e){j=null}FALLAS.enviando=false;if(j&&j.ok!==undefined){FALLAS.cola.shift();guardarFallas();if(FALLAS.cola.length)setTimeout(enviarFallas,800)}})
+    .catch(function(){FALLAS.enviando=false});
+}
+window.addEventListener('error',function(e){if(/ResizeObserver/.test(e.message||''))return;anotarFalla('pantalla',e.message||'Error de pantalla',(e.filename||'').split('/').pop()+':'+e.lineno+':'+e.colno+' '+((e.error&&e.error.stack)||'').slice(0,260))});
+window.addEventListener('unhandledrejection',function(e){var r=e.reason;anotarFalla('pantalla','Promesa sin manejar: '+((r&&r.message)||r),((r&&r.stack)||'').slice(0,300))});
+window.addEventListener('online',function(){setTimeout(enviarFallas,1500)});
+setTimeout(enviarFallas,4000);
 function api(action,data,idem){
   var intento=0,enCurso=0;
   function una(){
@@ -316,6 +338,7 @@ function api(action,data,idem){
       });
   }
   return una().then(function(j){
+    if(FALLAS.cola.length)setTimeout(enviarFallas,1200);
     if(j&&j.pinRequerido&&SES){SES=null;try{localStorage.removeItem(K_VEND)}catch(e){}barraVend();aviso('Tu sesión venció. Entra de nuevo como asesor.')}
     return j;
   });
