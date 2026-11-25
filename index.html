@@ -233,7 +233,7 @@ function bannersHtml(){
 }
 function cardHtml(p){
   var a=p.disponible,n=CART[p.codigo]||0,low=a<=(CAT.pocas||12);
-  var ph='<div class="ph"><b>'+esc((p.marca||'?').slice(0,1))+'</b>'+(p.foto?'<img loading="lazy" src="img/productos/'+esc(p.foto)+'" alt="'+esc(p.nombre)+'" onerror="this.remove()">':'')
+  var ph='<div class="ph"><b>'+esc((p.marca||'?').slice(0,1))+'</b>'+'<img loading="lazy" src="img/productos/'+esc(p.foto||(p.codigo+'.jpg'))+'" alt="'+esc(p.nombre)+'" onerror="this.remove()">'
     +(p.novedad?'<span class="tag">Novedad</span>':'')+(low?'<span class="tag low">Quedan '+a+'</span>':'')+'</div>';
   var tope=n>=a;
   var ctl=n?'<div class="qty"><button data-m="'+esc(p.codigo)+'" aria-label="Quitar uno">−</button><span>'+n+'</span><button data-p="'+esc(p.codigo)+'" aria-label="Agregar uno"'+(tope?' disabled':'')+'>+</button></div>'+(tope?'<span class="maxi">Unidades máximas</span>':'')

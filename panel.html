@@ -173,7 +173,7 @@ function arrancar(){
 }
 function pintarTabs(){
   var n=S.pedidos.filter(function(p){return p.estado==='POR_APROBAR'}).length;
-  var t=[['pedidos','Pedidos'+(n?'<span class="n">'+n+'</span>':'')],['enlaces','Enlaces'],['vendedores','Vendedores'],['ajustes','Ajustes']];
+  var t=[['pedidos','Pedidos'+(n?'<span class="n">'+n+'</span>':'')],['productos','Productos'],['enlaces','Enlaces'],['vendedores','Vendedores'],['ajustes','Ajustes']];
   if(S.rol==='administrador')t.push(['stock','Stock']);
   $('#tabs').innerHTML=t.map(function(x){return '<button data-t="'+x[0]+'" class="'+(S.tab===x[0]?'on':'')+'">'+x[1]+'</button>'}).join('');
 }
@@ -182,7 +182,7 @@ $('#btnAct').addEventListener('click',function(){toast('Actualizando…');Promis
 $('#btnSalir').addEventListener('click',salir);
 function vista(){
   if(!S.token)return;
-  ({pedidos:vistaPedidos,enlaces:vistaEnlaces,vendedores:vistaVendedores,ajustes:vistaAjustes,stock:vistaStock})[S.tab]();
+  ({pedidos:vistaPedidos,productos:vistaProductos,enlaces:vistaEnlaces,vendedores:vistaVendedores,ajustes:vistaAjustes,stock:vistaStock})[S.tab]();
 }
 function nombreVend(id){if(id==='detal')return 'Detal';var v=S.vendedores.filter(function(x){return x.id===id})[0];return v?v.nombre:id}
 
@@ -388,6 +388,132 @@ function mapaColumnas(){
       $('#stRes').innerHTML='<div class="warn" style="background:#dff3e4;color:var(--ok)">'+esc(r.message)+(r.repetidos?' · '+r.repetidos+' códigos repetidos se sumaron.':'')+'</div>'+(r.desconocidos&&r.desconocidos.length?'<div class="warn">No existen en Productos: '+esc(r.desconocidos.join(', '))+'</div>':'');
     }).catch(function(){b.disabled=false;b.textContent='Cargar stock';$('#stRes').innerHTML='<div class="err">No pudimos conectar.</div>'});
   };
+}
+
+/* ——— Productos y precios ——— */
+var NOMBRE_LISTA={1:'Bucaramanga',2:'Sábana y pueblos',3:'Pamplona/Cúcuta',4:'Arauca/Tibú',5:'Detal'};
+function problemasProd(p){
+  var pr=[];
+  if(!p.activo)return pr;
+  if([1,2,3,4,5].some(function(l){return !p.precios[l]}))pr.push('precio');
+  if(p.stock===null||p.stock<=0)pr.push('stock');
+  return pr;
+}
+function vistaProductos(){
+  $('#app').innerHTML='<h2>Productos y precios</h2><div class="empty">Cargando…</div>';
+  api('listarProductos',{}).then(function(r){
+    if(!r||!r.ok){$('#app').innerHTML='<div class="err">'+esc((r&&r.message)||'No se pudieron leer los productos.')+'</div>';return}
+    S.productos=r.productos;S.marcas=r.marcas;S.puedeTodo=r.puedeEditarTodo;pintarProductos();
+  }).catch(function(){$('#app').innerHTML='<div class="err">No pudimos conectar.</div>'});
+}
+function pintarProductos(){
+  var f=S.fprod||'todos',q=(S.qprod||'').toLowerCase(),cnt={precio:0,stock:0,inactivos:0};
+  S.productos.forEach(function(p){problemasProd(p).forEach(function(x){cnt[x]++});if(!p.activo)cnt.inactivos++});
+  var lista=S.productos.filter(function(p){
+    if(q&&(p.codigo+' '+p.nombre+' '+p.tono_presentacion+' '+p.marca).toLowerCase().indexOf(q)<0)return false;
+    if(f==='todos')return true;if(f==='inactivos')return !p.activo;return problemasProd(p).indexOf(f)>=0;
+  });
+  var chips=[['todos','Todos ('+S.productos.length+')'],['precio','Sin precio ('+cnt.precio+')'],['stock','Sin stock ('+cnt.stock+')'],['inactivos','Apagados ('+cnt.inactivos+')']];
+  var h='<div class="row"><h2 class="g">Productos y precios</h2>'+(S.puedeTodo?'<button class="btn s mini" id="impP">Importar Excel</button><button class="btn mini" id="nuevoP">Nuevo producto</button>':'')+'</div>'
+    +'<div class="chips">'+chips.map(function(c){return '<button class="chip'+(f===c[0]?' on':'')+'" data-f="'+c[0]+'">'+esc(c[1])+'</button>'}).join('')+'</div>'
+    +'<input id="qP" placeholder="Buscar por código, nombre o marca" value="'+esc(S.qprod||'')+'" style="margin-bottom:12px">';
+  h+=lista.length?lista.map(function(p){
+    var pr=problemasProd(p);
+    return '<div class="card pedido '+(p.activo?'':'off')+'" data-c="'+esc(p.codigo)+'"><div class="row"><div class="g"><b>'+esc(p.nombre)+'</b>'+(p.tono_presentacion?' <span class="mut">('+esc(p.tono_presentacion)+')</span>':'')+' <span class="mut">· '+esc(p.codigo)+' · '+esc(p.marca)+'</span>'
+      +'<div class="mut">'+[1,2,3,4,5].map(function(l){return NOMBRE_LISTA[l]+' '+(p.precios[l]?cop(p.precios[l]):'<b style="color:var(--bad)">—</b>')}).join(' · ')+'</div>'
+      +'<div class="mut">'+(p.unidad_venta==='caja'?'Caja x'+p.unidades_por_caja:'Unidad')+' · Stock: '+(p.stock===null?'sin cargar':p.stock+' unid.')+'</div></div>'
+      +'<div style="text-align:right">'+(p.activo?'':'<span class="pill p-RECHAZADO">apagado</span>')+(pr.length&&p.activo?'<div class="mut" style="color:var(--warn)">'+esc(pr.join(', '))+'</div>':'')+'</div></div></div>'}).join(''):'<div class="empty">No hay productos en esta lista.</div>';
+  $('#app').innerHTML=h;
+  $('#qP').oninput=function(){S.qprod=this.value;var pos=this.selectionStart;pintarProductos();var n=$('#qP');n.focus();n.setSelectionRange(pos,pos)};
+  $('#app').onclick=function(e){
+    var c=e.target.closest('.chip');if(c){S.fprod=c.dataset.f;pintarProductos();return}
+    var b=e.target.closest('button');if(b&&b.id==='nuevoP')return formProducto();if(b&&b.id==='impP')return importarExcel();
+    var k=e.target.closest('.pedido');if(k)formProducto(k.dataset.c);
+  };
+}
+function formProducto(codigo){
+  var nuevo=!codigo,p=nuevo?{codigo:'',marca:S.marcas[0]||'',nombre:'',tono_presentacion:'',descripcion:'',unidad_venta:'unidad',unidades_por_caja:1,foto:'',novedad:false,activo:true,precios:{1:0,2:0,3:0,4:0,5:0}}:S.productos.filter(function(x){return x.codigo===codigo})[0];
+  if(!p)return;
+  var todo=S.puedeTodo,dis=function(x){return x||todo?'':' disabled'};
+  var inp=function(id,lbl,val,extra,editable){return '<label>'+lbl+'<input id="'+id+'" value="'+esc(val)+'" '+(extra||'')+(editable||todo?'':' disabled')+'></label>'};
+  var h='<div class="row"><h2 class="g" style="margin:0">'+(nuevo?'Nuevo producto':esc(p.nombre))+'</h2><button class="btn s mini" id="cerr">Cerrar</button></div>'
+    +(todo?'':'<p class="mut">Como gerente puedes cambiar los precios, la descripción y encender o apagar el producto.</p>')
+    +'<form class="fld" id="fP">'
+    +'<div class="two">'+inp('pCod','Código',p.codigo,(nuevo?'':'readonly ')+'maxlength="30"')+'<label>Marca<select id="pMarca"'+dis()+'>'+S.marcas.map(function(m){return '<option'+(m===p.marca?' selected':'')+'>'+esc(m)+'</option>'}).join('')+'</select></label></div>'
+    +inp('pNom','Nombre',p.nombre,'maxlength="80"')+inp('pTono','Tono o presentación',p.tono_presentacion,'maxlength="40"')
+    +inp('pDesc','Descripción (una línea)',p.descripcion,'maxlength="160"',true)
+    +'<div class="two"><label>Se vende por<select id="pUV"'+dis()+'><option value="unidad"'+(p.unidad_venta==='unidad'?' selected':'')+'>Unidad</option><option value="caja"'+(p.unidad_venta==='caja'?' selected':'')+'>Caja</option></select></label>'+inp('pPor','Unidades por caja',p.unidades_por_caja,'inputmode="numeric"')+'</div>'
+    +'<div class="two">'+inp('pFoto','Foto (opcional: vacío = se busca por el código)',p.foto,'maxlength="60" placeholder="EJ-004.jpg"')+'<label>Novedad<select id="pNov"'+dis()+'><option value="0"'+(p.novedad?'':' selected')+'>No</option><option value="1"'+(p.novedad?' selected':'')+'>Sí</option></select></label></div>'
+    +'<label>Estado<select id="pAct"><option value="1"'+(p.activo?' selected':'')+'>Activo</option><option value="0"'+(p.activo?'':' selected')+'>Apagado (no se muestra)</option></select></label>'
+    +'<b>Precios con IVA</b><div class="two">'+[1,2,3,4,5].map(function(l){return inp('pP'+l,'Lista '+l+' · '+NOMBRE_LISTA[l],p.precios[l]||'','inputmode="numeric"',true)}).join('')+'</div>'
+    +'<p class="mut">Un precio vacío o en 0 significa que el producto no se ofrece en esa lista.</p><div id="pErr"></div>'
+    +'<div class="row"><button class="btn" type="submit">Guardar</button><button class="btn s" type="button" id="no">Cancelar</button></div></form>';
+  modal(h);$('#cerr').onclick=cerrar;$('#no').onclick=cerrar;
+  $('#fP').onsubmit=function(e){
+    e.preventDefault();
+    var pr={};[1,2,3,4,5].forEach(function(l){pr[l]=aNumero($('#pP'+l).value)});
+    var prod={codigo:$('#pCod').value.trim(),marca:$('#pMarca').value,nombre:$('#pNom').value,tono_presentacion:$('#pTono').value,descripcion:$('#pDesc').value,unidad_venta:$('#pUV').value,unidades_por_caja:aNumero($('#pPor').value)||1,foto:$('#pFoto').value.trim(),novedad:$('#pNov').value==='1',activo:$('#pAct').value==='1',precios:pr};
+    var b=this.querySelector('button[type=submit]');b.disabled=true;
+    api('guardarProducto',{producto:prod,crear:nuevo},nuevaLlave()).then(function(r){
+      b.disabled=false;
+      if(!r||!r.ok){var m={codigo:'#pCod',nombre:'#pNom',foto:'#pFoto',unidades_por_caja:'#pPor'}[r&&r.campo]||(/^precio(\d)$/.exec((r&&r.campo)||'')?'#pP'+RegExp.$1:'');if(m)marcar($(m));$('#pErr').innerHTML='<div class="err">'+esc((r&&r.message)||'No se pudo guardar')+'</div>';return}
+      cerrar();toast(r.message);vistaProductos();
+    }).catch(function(){b.disabled=false;$('#pErr').innerHTML='<div class="err">No pudimos conectar.</div>'});
+  };
+}
+
+/* ——— Importar el Excel de productos y precios ——— */
+var CAMPOS_IMP=[['codigo','Código',/c[oó]d|ref|sku/i],['marca','Marca',/marca|l[ií]nea/i],['nombre','Nombre',/nombre|producto|art[ií]culo/i],['tono_presentacion','Tono o presentación',/tono|presentaci|variante|color/i],
+  ['descripcion','Descripción',/descrip|detalle/i],['unidad_venta','Se vende por (unidad/caja)',/venta|vende/i],['unidades_por_caja','Unidades por caja',/caja/i],['foto','Foto',/foto|imagen/i],['novedad','Novedad',/novedad|nuevo/i],['activo','Activo',/activo|habilitado/i],
+  ['p1','Precio lista 1 · Bucaramanga',/lista.?1|bucaramanga/i],['p2','Precio lista 2 · Sábana y pueblos',/lista.?2|s[aá]bana|pueblos/i],['p3','Precio lista 3 · Pamplona/Cúcuta',/lista.?3|pamplona|c[uú]cuta/i],['p4','Precio lista 4 · Arauca/Tibú',/lista.?4|arauca|tib[uú]/i],['p5','Precio lista 5 · Detal',/lista.?5|detal/i]];
+var IMP=null;
+function importarExcel(){
+  modal('<div class="row"><h2 class="g" style="margin:0">Importar productos y precios</h2><button class="btn s mini" id="cerr">Cerrar</button></div>'
+    +'<p class="mut">Sube el Excel de Juan Carlos (una fila por producto, con una columna de precio por lista). Primero se valida todo y, si hay un solo error, no se escribe nada.</p>'
+    +'<label class="fld"><span class="mut">Archivo Excel (.xlsx, .xls) o CSV</span><input type="file" id="iArch" accept=".xlsx,.xls,.csv"></label><div id="iBody"></div>');
+  $('#cerr').onclick=cerrar;
+  $('#iArch').onchange=function(){
+    var f=this.files[0];if(!f)return;$('#iBody').innerHTML='<p class="mut">Leyendo…</p>';
+    cargarXlsx().then(function(){return f.arrayBuffer()}).then(function(buf){
+      var wb=XLSX.read(buf,{type:'array'}),ws=wb.Sheets[wb.SheetNames[0]],filas=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      var head=0;while(head<filas.length&&filas[head].filter(function(c){return String(c).trim()}).length<3)head++;
+      if(head>=filas.length)throw new Error('No encontré una fila de encabezados.');
+      IMP={cab:filas[head].map(String),datos:filas.slice(head+1).map(function(r,i){return {r:r,n:head+i+2}}).filter(function(x){return x.r.some(function(c){return String(c).trim()})})};
+      mapaImp();
+    }).catch(function(e){$('#iBody').innerHTML='<div class="err">'+esc(e.message||'No se pudo leer el archivo')+'</div>'});
+  };
+}
+function mapaImp(){
+  var usados={},sel={};
+  CAMPOS_IMP.forEach(function(c){IMP.cab.forEach(function(h,i){if(sel[c[0]]===undefined&&!usados[i]&&c[2].test(h)){sel[c[0]]=i;usados[i]=1}})});
+  var op=function(v){return '<option value="-1">— No usar —</option>'+IMP.cab.map(function(c,i){return '<option value="'+i+'"'+(i===v?' selected':'')+'>'+esc(c||('Columna '+(i+1)))+'</option>'}).join('')};
+  $('#iBody').innerHTML='<p class="mut">'+IMP.datos.length+' filas con datos. Revisa que cada campo apunte a la columna correcta:</p><div class="fld">'+CAMPOS_IMP.map(function(c){return '<label>'+esc(c[1])+'<select data-c="'+c[0]+'">'+op(sel[c[0]]===undefined?-1:sel[c[0]])+'</select></label>'}).join('')+'</div>'
+    +'<label style="display:flex;gap:8px;align-items:center;margin-top:10px"><input type="checkbox" id="iDes" style="width:auto;min-height:0"> Apagar los productos que NO vienen en este archivo</label><div class="row" style="margin-top:12px"><button class="btn" id="iVal">Validar</button></div><div id="iRes"></div>';
+  $('#iVal').onclick=function(){enviarImp('validar')};
+}
+function filasImp(){
+  var col={};document.querySelectorAll('#iBody select[data-c]').forEach(function(s){col[s.dataset.c]=Number(s.value)});
+  var v=function(r,k){return col[k]>=0?r[col[k]]:undefined};
+  return IMP.datos.map(function(x){
+    var por=v(x.r,'unidades_por_caja'),uv=String(v(x.r,'unidad_venta')==null?'':v(x.r,'unidad_venta')).trim().toLowerCase();
+    if(!uv)uv=aNumero(por)>1?'caja':'unidad';
+    var nov=v(x.r,'novedad'),act=v(x.r,'activo');
+    return {_fila:x.n,codigo:String(v(x.r,'codigo')==null?'':v(x.r,'codigo')).trim(),marca:v(x.r,'marca'),nombre:v(x.r,'nombre'),tono_presentacion:v(x.r,'tono_presentacion'),descripcion:v(x.r,'descripcion'),
+      unidad_venta:uv,unidades_por_caja:por,foto:v(x.r,'foto'),novedad:nov===undefined?false:/^(si|sí|1|true|x)$/i.test(String(nov).trim()),activo:act===undefined?true:!/^(no|0|false)$/i.test(String(act).trim()),
+      precios:{1:v(x.r,'p1'),2:v(x.r,'p2'),3:v(x.r,'p3'),4:v(x.r,'p4'),5:v(x.r,'p5')}};
+  });
+}
+function enviarImp(modo){
+  var b=modo==='validar'?$('#iVal'):$('#iApl');b.disabled=true;
+  api('importarProductos',{filas:filasImp(),modo:modo,desactivarFaltantes:$('#iDes').checked},modo==='aplicar'?nuevaLlave():undefined).then(function(r){
+    b.disabled=false;
+    if(!r||(!r.validado&&!r.ok)){$('#iRes').innerHTML='<div class="err">'+esc((r&&r.message)||'No se pudo importar')+'</div>';return}
+    var h='';
+    if(r.aplicado){h='<div class="warn" style="background:#dff3e4;color:var(--ok)">'+esc(r.message)+'</div>';$('#iRes').innerHTML=h;toast('Importación lista');return}
+    if(!r.ok){h='<div class="err"><b>'+esc(r.message)+'</b></div><table><thead><tr><th>Fila</th><th>Código</th><th>Problema</th></tr></thead><tbody>'+r.errores.map(function(e){return '<tr><td>'+e.fila+'</td><td>'+esc(e.codigo)+'</td><td>'+esc(e.message)+'</td></tr>'}).join('')+'</tbody></table>'+(r.nErrores>r.errores.length?'<p class="mut">Se muestran los primeros '+r.errores.length+'.</p>':'')}
+    else h='<div class="warn" style="background:#dff3e4;color:var(--ok)">'+esc(r.message)+(r.desactivados?' Se apagarán '+r.desactivados+' productos que no vienen en el archivo.':'')+'</div><button class="btn ok" id="iApl">Aplicar importación</button>';
+    $('#iRes').innerHTML=h;var a=$('#iApl');if(a)a.onclick=function(){enviarImp('aplicar')};
+  }).catch(function(){b.disabled=false;$('#iRes').innerHTML='<div class="err">No pudimos conectar.</div>'});
 }
 
 /* ——— Inicio ——— */
