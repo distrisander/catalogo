@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#111111">
+<title>Panel Distrisander</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Panel de trabajo: más denso y práctico que el catálogo, con la misma paleta negro y dorado. */
+:root{--ink:#111;--gold:#C9A24B;--gold-d:#7f5c12;--bg:#f6f3ec;--card:#fff;--line:#e6dfcf;--mut:#625b50;--ok:#2f6b3f;--bad:#a63a2e;--warn:#9a6b00;
+--disp:'Playfair Display',Georgia,serif;--body:'Inter',system-ui,sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--body);padding-bottom:40px}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.wrap{max-width:980px;margin:0 auto;padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px))}
+header{background:var(--ink);color:#fff;padding-top:env(safe-area-inset-top,0px)}
+.top{display:flex;align-items:center;gap:12px;padding-block:12px;flex-wrap:wrap}
+.mark{width:38px;height:38px;border-radius:50%;border:1.5px solid var(--gold);display:grid;place-items:center;font:600 15px var(--disp);color:var(--gold);flex:none}
+.top h1{margin:0;font:600 18px var(--disp)}
+.top small{display:block;color:#b9b1a0;font-size:12px}
+.top .sp{margin-left:auto;display:flex;gap:8px;align-items:center}
+.btn{border:1.5px solid var(--ink);background:var(--ink);color:var(--gold);border-radius:99px;padding:9px 16px;font-weight:600;min-height:40px}
+.btn.s{background:transparent;color:var(--ink);border-color:var(--line)}
+header .btn.s{color:#fff;border-color:#3a3426}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn.bad{background:var(--bad);border-color:var(--bad);color:#fff}
+.btn.mini{padding:6px 12px;min-height:34px;font-size:13px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+nav{background:#1c1a15;overflow-x:auto;scrollbar-width:none}
+nav .wrap{display:flex;gap:4px}
+nav button{background:none;border:0;color:#b9b1a0;padding:12px 14px;font-weight:500;border-bottom:3px solid transparent;white-space:nowrap}
+nav button.on{color:var(--gold);border-color:var(--gold)}
+nav .n{background:var(--bad);color:#fff;border-radius:99px;font-size:11px;padding:1px 7px;margin-left:5px}
+main{padding-top:18px}
+h2{font:600 22px var(--disp);margin:0 0 12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:10px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.chip{border:1.5px solid var(--line);background:var(--card);border-radius:99px;padding:7px 14px;font-weight:500;font-size:14px}
+.chip.on{background:var(--ink);color:var(--gold);border-color:var(--ink)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row .g{flex:1;min-width:0}
+.pill{display:inline-block;border-radius:99px;padding:2px 10px;font-size:12px;font-weight:600}
+.p-POR_APROBAR{background:#fff1cc;color:var(--warn)}.p-APROBADO{background:#dff3e4;color:var(--ok)}.p-RECHAZADO,.p-ANULADO{background:#f4dddb;color:var(--bad)}
+.mut{color:var(--mut);font-size:13px}
+.big{font:600 18px var(--disp)}
+.pedido{cursor:pointer}.pedido:hover{border-color:var(--gold)}
+.fld{display:grid;gap:10px;margin-top:10px}
+.fld label{display:grid;gap:4px;font-size:13px;color:var(--mut);font-weight:500}
+input,select,textarea{border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff;color:var(--ink);width:100%;min-height:42px}
+textarea{min-height:64px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px}
+.mal{border-color:var(--bad)!important}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:560px){.two{grid-template-columns:1fr}}
+.url{font:12px ui-monospace,Consolas,monospace;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;word-break:break-all;margin:6px 0}
+.off{opacity:.55}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+td.r,th.r{text-align:right;white-space:nowrap}
+.ov{position:fixed;inset:0;background:rgba(17,17,17,.55);z-index:30;display:flex;align-items:flex-end;justify-content:center}
+.ov[hidden]{display:none}
+.sheet{background:var(--bg);width:100%;max-width:640px;max-height:92vh;overflow:auto;border-radius:24px 24px 0 0;padding:18px max(16px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+@media(min-width:700px){.ov{align-items:center}.sheet{border-radius:24px}}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;border-radius:99px;padding:11px 20px;font-size:14px;z-index:50;max-width:92vw;opacity:0;pointer-events:none;transition:opacity .2s;text-align:center}
+.toast.on{opacity:1}
+.warn{background:#fff1cc;color:var(--warn);border-radius:12px;padding:10px 12px;font-size:14px;margin:8px 0}
+.err{background:#f9e3e0;color:var(--bad);border-radius:12px;padding:10px 12px;font-size:14px;margin:8px 0}
+.login{max-width:420px;margin:40px auto}
+.empty{text-align:center;color:var(--mut);padding:30px 0}
+</style>
+</head>
+<body>
+<header><div class="wrap top">
+  <div class="mark">DS</div>
+  <div><h1>Panel Distrisander</h1><small id="quien">Acceso con PIN</small></div>
+  <div class="sp" id="acc" hidden><button class="btn s mini" id="btnAct">Actualizar</button><button class="btn s mini" id="btnSalir">Salir</button></div>
+</div></header>
+<nav id="nav" hidden><div class="wrap" id="tabs"></div></nav>
+<main class="wrap" id="app"></main>
+<div class="ov" id="ov" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function(){
+'use strict';
+var API='https://script.google.com/macros/s/AKfycbwo0_mg4rXAew1Sb1abzeFUD99gw8X65bDqizjIxaVYty60FjzlbSHhQMpOHHJXr2XW0w/exec';
+var BASE_CAT=location.href.replace(/panel\.html.*$/,'').replace(/[^\/]*$/,'')+'index.html?k=';
+var LISTAS={1:'Bucaramanga y área',2:'Sábana de Torres y pueblos',3:'Pamplona, Cúcuta y área',4:'Arauca, Tibú y zona roja',5:'Detal'};
+var ROLES={administrador:'Administrador',gerente:'Gerente',vendedor:'Vendedor'};
+var $=function(s,r){return (r||document).querySelector(s)};
+var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var cop=function(n){return '$ '+Math.round(n||0).toLocaleString('es-CO')};
+var pausa=function(ms){return new Promise(function(r){setTimeout(r,ms)})};
+var S={token:'',usuario:'',rol:'',tab:'pedidos',filtro:'POR_APROBAR',pedidos:[],vendedores:[],enlaces:[],ajustes:null};
+try{var g=JSON.parse(localStorage.getItem('ds_panel')||'null');if(g){S.token=g.token;S.usuario=g.usuario;S.rol=g.rol}}catch(e){}
+
+/* ——— Servidor (misma lógica que el catálogo: reintentos y llave anti-duplicado) ——— */
+function api(action,data,idem){
+  var intento=0,enCurso=0;
+  function una(){
+    intento++;
+    var ctrl=window.AbortController?new AbortController():null,t=setTimeout(function(){if(ctrl)ctrl.abort()},45000);
+    return fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow',cache:'no-store',signal:ctrl?ctrl.signal:undefined,
+      body:JSON.stringify({action:action,data:data||{},idem:idem||undefined,token:S.token})})
+      .then(function(r){return r.text()})
+      .then(function(txt){clearTimeout(t);var j;try{j=JSON.parse(txt)}catch(e){throw new Error('respuesta')}return j})
+      .then(function(j){if(j&&j.enCurso&&enCurso<8){enCurso++;intento--;return pausa(2500).then(una)}return j})
+      .catch(function(e){clearTimeout(t);if(intento<3&&navigator.onLine!==false&&(!idem?isRead(action):true))return pausa(900*intento).then(una);throw e});
+  }
+  return una().then(function(j){if(j&&j.pinRequerido&&S.token){sesionVencida()}return j});
+}
+function isRead(a){return /^(listar|leer|miSesion|estado|catalogo)/.test(a)}
+function nuevaLlave(){return 'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,10)}
+
+function toast(m){var t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('on')},Math.min(6000,2200+m.length*40))}
+function modal(html){var o=$('#ov');$('#sheet').innerHTML=html;o.hidden=false;document.body.style.overflow='hidden'}
+function cerrar(){$('#ov').hidden=true;document.body.style.overflow=''}
+$('#ov').addEventListener('click',function(e){if(e.target.id==='ov')cerrar()});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')cerrar()});
+function copiar(txt){return (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(function(){toast('Copiado')},function(){window.prompt('Copia el texto:',txt)})}
+function marcar(el){if(!el)return;el.classList.add('mal');el.focus();el.addEventListener('input',function f(){el.classList.remove('mal');el.removeEventListener('input',f)})}
+
+/* ——— Acceso ——— */
+function guardarSesion(r){S.token=r.token;S.usuario=r.usuario;S.rol=r.rol;try{localStorage.setItem('ds_panel',JSON.stringify({token:r.token,usuario:r.usuario,rol:r.rol}))}catch(e){}}
+function sesionVencida(){S.token='';try{localStorage.removeItem('ds_panel')}catch(e){}vistaLogin('Tu sesión venció. Entra de nuevo con tu PIN.')}
+function vistaLogin(msg){
+  $('#acc').hidden=true;$('#nav').hidden=true;$('#quien').textContent='Acceso con PIN';
+  $('#app').innerHTML='<div class="login card"><h2>Entrar</h2>'+(msg?'<div class="warn">'+esc(msg)+'</div>':'')
+    +'<form class="fld" id="fLogin"><label>Usuario<select id="lUser"><option value="juancarlos">Juan Carlos (gerente)</option><option value="kevin">Kevin (administrador)</option></select></label>'
+    +'<label>PIN<input id="lPin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="6" placeholder="4 a 6 números"></label>'
+    +'<div id="lErr"></div><button class="btn" id="lGo" type="submit">Entrar</button></form>'
+    +'<p class="mut" style="margin-top:14px">¿Primera vez como administrador? <a href="#" id="primera">Crear mi PIN con la clave de instalación</a></p></div>';
+  $('#fLogin').addEventListener('submit',function(e){
+    e.preventDefault();var b=$('#lGo'),pin=$('#lPin').value.trim();
+    if(!/^\d{4,6}$/.test(pin)){marcar($('#lPin'));return}
+    b.disabled=true;b.textContent='Entrando…';
+    api('verificarPin',{usuario:$('#lUser').value,pin:pin}).then(function(r){
+      if(!r||!r.ok){b.disabled=false;b.textContent='Entrar';$('#lErr').innerHTML='<div class="err">'+esc((r&&r.message)||'No se pudo entrar.')+'</div>';return}
+      if(r.rol==='vendedor'){b.disabled=false;b.textContent='Entrar';$('#lErr').innerHTML='<div class="err">Los vendedores entran desde su catálogo, con el botón «Soy asesor».</div>';return}
+      guardarSesion(r);arrancar();
+    }).catch(function(){b.disabled=false;b.textContent='Entrar';$('#lErr').innerHTML='<div class="err">No pudimos conectar. Revisa tu internet.</div>'});
+  });
+  $('#primera').addEventListener('click',function(e){e.preventDefault();vistaPrimera()});
+}
+function vistaPrimera(){
+  $('#app').innerHTML='<div class="login card"><h2>Primera vez</h2><p class="mut">Solo el administrador (Kevin). La clave de instalación es la que mostró <b>INSTALAR()</b> en Apps Script; sirve una sola vez.</p>'
+    +'<form class="fld" id="fPri"><label>Clave de instalación<input id="pCod" autocomplete="off" maxlength="20"></label>'
+    +'<label>Tu PIN nuevo (4 a 6 números)<input id="pPin" type="password" inputmode="numeric" maxlength="6"></label>'
+    +'<label>Repite el PIN<input id="pPin2" type="password" inputmode="numeric" maxlength="6"></label><div id="pErr"></div>'
+    +'<button class="btn" type="submit">Crear PIN y entrar</button></form><p class="mut" style="margin-top:14px"><a href="#" id="volver">Volver</a></p></div>';
+  $('#volver').addEventListener('click',function(e){e.preventDefault();vistaLogin()});
+  $('#fPri').addEventListener('submit',function(e){
+    e.preventDefault();var a=$('#pPin').value.trim(),b=$('#pPin2').value.trim();
+    if(!/^\d{4,6}$/.test(a)){marcar($('#pPin'));return}
+    if(a!==b){marcar($('#pPin2'));$('#pErr').innerHTML='<div class="err">Los dos PIN no coinciden.</div>';return}
+    api('configurarPin',{usuario:'kevin',nuevo:a,claveInstalacion:$('#pCod').value.trim()}).then(function(r){
+      if(!r||!r.ok){$('#pErr').innerHTML='<div class="err">'+esc((r&&r.message)||'No se pudo crear el PIN.')+'</div>';return}
+      guardarSesion(r);arrancar();
+    }).catch(function(){$('#pErr').innerHTML='<div class="err">No pudimos conectar.</div>'});
+  });
+}
+function salir(){api('cerrarSesion',{}).catch(function(){});S.token='';try{localStorage.removeItem('ds_panel')}catch(e){}vistaLogin()}
+
+/* ——— Estructura ——— */
+function arrancar(){
+  $('#acc').hidden=false;$('#nav').hidden=false;$('#quien').textContent=(S.usuario==='kevin'?'Kevin':S.usuario==='juancarlos'?'Juan Carlos':S.usuario)+' · '+(ROLES[S.rol]||S.rol);
+  Promise.all([cargarVendedores(),cargarPedidos()]).then(function(){pintarTabs();vista()});
+  pintarTabs();vista();
+}
+function pintarTabs(){
+  var n=S.pedidos.filter(function(p){return p.estado==='POR_APROBAR'}).length;
+  var t=[['pedidos','Pedidos'+(n?'<span class="n">'+n+'</span>':'')],['enlaces','Enlaces'],['vendedores','Vendedores'],['ajustes','Ajustes']];
+  if(S.rol==='administrador')t.push(['stock','Stock']);
+  $('#tabs').innerHTML=t.map(function(x){return '<button data-t="'+x[0]+'" class="'+(S.tab===x[0]?'on':'')+'">'+x[1]+'</button>'}).join('');
+}
+$('#tabs').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;S.tab=b.dataset.t;pintarTabs();vista()});
+$('#btnAct').addEventListener('click',function(){toast('Actualizando…');Promise.all([cargarVendedores(),cargarPedidos()]).then(function(){pintarTabs();vista();toast('Listo')})});
+$('#btnSalir').addEventListener('click',salir);
+function vista(){
+  if(!S.token)return;
+  ({pedidos:vistaPedidos,enlaces:vistaEnlaces,vendedores:vistaVendedores,ajustes:vistaAjustes,stock:vistaStock})[S.tab]();
+}
+function nombreVend(id){if(id==='detal')return 'Detal';var v=S.vendedores.filter(function(x){return x.id===id})[0];return v?v.nombre:id}
+
+/* ——— Pedidos ——— */
+function cargarPedidos(){return api('listarPedidos',{}).then(function(r){if(r&&r.ok)S.pedidos=r.pedidos})}
+function cargarVendedores(){return api('listarVendedores',{}).then(function(r){if(r&&r.ok)S.vendedores=r.vendedores})}
+function vistaPedidos(){
+  var por=S.pedidos.filter(function(p){return p.estado==='POR_APROBAR'}).length;
+  var fs=[['POR_APROBAR','Por aprobar ('+por+')'],['APROBADO','Aprobados'],['CERRADOS','Rechazados y anulados'],['TODOS','Todos']];
+  var lista=S.pedidos.filter(function(p){return S.filtro==='TODOS'||(S.filtro==='CERRADOS'?(p.estado==='RECHAZADO'||p.estado==='ANULADO'):p.estado===S.filtro)});
+  var h='<h2>Pedidos</h2><div class="chips">'+fs.map(function(f){return '<button class="chip'+(S.filtro===f[0]?' on':'')+'" data-f="'+f[0]+'">'+esc(f[1])+'</button>'}).join('')+'</div>';
+  h+=lista.length?lista.map(function(p){
+    return '<div class="card pedido" data-id="'+esc(p.id)+'"><div class="row"><div class="g"><b>'+esc(p.negocio)+'</b> <span class="mut">· '+esc(p.id)+'</span><div class="mut">'+esc(nombreVend(p.vendedor))+' · lista '+esc(p.lista)+' · '+esc(p.fecha)+' · '+esc(p.forma_pago)+'</div></div>'
+      +'<div style="text-align:right"><div class="big">'+cop(p.total)+'</div><span class="pill p-'+esc(p.estado)+'">'+esc(p.estado.replace('_',' ').toLowerCase())+'</span></div></div></div>'}).join('')
+    :'<div class="empty">'+(S.filtro==='POR_APROBAR'?'No hay pedidos por aprobar.':'No hay pedidos en esta lista.')+'</div>';
+  $('#app').innerHTML=h;
+  $('#app').onclick=function(e){
+    var c=e.target.closest('.chip');if(c){S.filtro=c.dataset.f;vistaPedidos();return}
+    var p=e.target.closest('.pedido');if(p)detallePedido(p.dataset.id);
+  };
+}
+function textoPedido(p){
+  var t='*PEDIDO DISTRISANDER* '+p.id+'\nAsesor: '+nombreVend(p.vendedor)+' · lista '+p.lista+'\n\n*Cliente*\nNegocio: '+p.negocio+'\nRecibe: '+p.recibe+'\nCédula/NIT: '+p.cedula_nit+'\nTeléfono: '+p.telefono+'\nDirección: '+p.direccion+'\nCiudad/barrio: '+p.ciudad_barrio+'\nForma de pago: '+p.forma_pago+'\n';
+  if(p.observaciones)t+='Observaciones: '+p.observaciones+'\n';
+  t+='\n*Productos*\n';
+  p.lineas.forEach(function(l){t+='• '+l.cantidad+' × '+l.nombre+(l.tono?' ('+l.tono+')':'')+' · '+(l.unidad_venta==='caja'?'Caja x'+l.por_caja+' = '+l.unidades+' unid.':'Unidad')+' · '+cop(l.precio)+' = '+cop(l.subtotal)+'\n'});
+  return t+'\n*Total: '+cop(p.total)+'* (IVA incluido)';
+}
+function detallePedido(id,extra){
+  var p=S.pedidos.filter(function(x){return x.id===id})[0];if(!p)return;
+  var h='<div class="row"><h2 class="g" style="margin:0">'+esc(p.negocio)+'</h2><button class="btn s mini" id="cerr">Cerrar</button></div>'
+    +'<div class="mut">'+esc(p.id)+' · '+esc(p.fecha)+' · <span class="pill p-'+esc(p.estado)+'">'+esc(p.estado.replace('_',' ').toLowerCase())+'</span></div>'
+    +'<div class="card" style="margin-top:10px"><div>Recibe: <b>'+esc(p.recibe)+'</b></div><div>Cédula/NIT: '+esc(p.cedula_nit)+' · Tel: <a href="tel:'+esc(p.telefono)+'">'+esc(p.telefono)+'</a></div><div>'+esc(p.direccion)+' · '+esc(p.ciudad_barrio)+'</div><div>Pago: <b>'+esc(p.forma_pago)+'</b></div>'
+    +'<div class="mut">Asesor: '+esc(nombreVend(p.vendedor))+' · lista '+esc(p.lista)+'</div>'+(p.observaciones?'<div style="margin-top:6px">Obs.: '+esc(p.observaciones)+'</div>':'')+'</div>'
+    +'<table><thead><tr><th>Producto</th><th class="r">Cant.</th><th class="r">Subtotal</th></tr></thead><tbody>'
+    +p.lineas.map(function(l){return '<tr><td>'+esc(l.nombre)+(l.tono?' <span class="mut">('+esc(l.tono)+')</span>':'')+'<div class="mut">'+(l.unidad_venta==='caja'?'Caja x'+l.por_caja+' = '+l.unidades+' unid.':'Unidad')+' · '+cop(l.precio)+'</div></td><td class="r">'+l.cantidad+'</td><td class="r">'+cop(l.subtotal)+'</td></tr>'}).join('')
+    +'</tbody></table><div class="row" style="margin:10px 0"><b class="g">Total</b><b class="big">'+cop(p.total)+'</b></div>';
+  if(p.revisado_por)h+='<div class="mut">'+esc(p.revisado_por)+'</div>';
+  if(extra&&extra.faltantes)h+='<div class="warn"><b>No alcanza el stock:</b><br>'+extra.faltantes.map(function(f){return esc(f.nombre)+': pide '+f.pide+', hay '+f.hay}).join('<br>')+'<br>Aprueba solo si ya lo confirmaste con bodega.</div>';
+  if(S.rol==='gerente'||S.rol==='administrador'){
+    if(p.estado==='POR_APROBAR'){
+      h+='<div class="fld"><label>Motivo (solo para rechazar)<input id="dMot" maxlength="200" placeholder="Ej. Cliente cambió de idea"></label></div><div class="row" style="margin-top:12px">'
+        +'<button class="btn ok" id="aprob">'+(extra&&extra.faltantes?'Aprobar de todos modos':'Aprobar')+'</button><button class="btn bad" id="rech">Rechazar</button></div>';
+    }else if(p.estado==='APROBADO'){
+      h+='<div class="row" style="margin-top:12px"><a class="btn" id="wa" style="text-decoration:none" target="_blank" rel="noopener" href="https://wa.me/?text='+encodeURIComponent(textoPedido(p))+'">Compartir a bodega por WhatsApp</a><button class="btn s" id="copPed">Copiar pedido</button></div>'
+        +'<div class="fld" style="margin-top:14px"><label>Anular y devolver el stock (solo con orden de Juan Carlos y confirmación de bodega)<input id="dMot" maxlength="200" placeholder="Motivo de la anulación"></label></div><button class="btn bad" id="anul" style="margin-top:8px">Anular pedido</button>';
+    }
+  }
+  modal(h);
+  $('#cerr').onclick=cerrar;
+  var c=$('#copPed');if(c)c.onclick=function(){copiar(textoPedido(p))};
+  var resolver=function(estado,forzar){
+    var mot=($('#dMot')||{}).value||'';
+    if(estado!=='APROBADO'&&!mot.trim()){marcar($('#dMot'));toast('Escribe el motivo');return}
+    var btns=document.querySelectorAll('#sheet .btn');btns.forEach(function(b){b.disabled=true});
+    api('resolverPedido',{id:id,estado:estado,motivo:mot.trim(),forzar:!!forzar},nuevaLlave()).then(function(r){
+      if(r&&r.faltantes){btns.forEach(function(b){b.disabled=false});detallePedido(id,{faltantes:r.faltantes});return}
+      if(!r||!r.ok){btns.forEach(function(b){b.disabled=false});toast((r&&r.message)||'No se pudo guardar');return}
+      toast(r.message||'Listo');
+      return cargarPedidos().then(function(){pintarTabs();vistaPedidos();detallePedido(id)});
+    }).catch(function(){btns.forEach(function(b){b.disabled=false});toast('No pudimos conectar')});
+  };
+  var a=$('#aprob');if(a)a.onclick=function(){resolver('APROBADO',!!(extra&&extra.faltantes))};
+  var r=$('#rech');if(r)r.onclick=function(){resolver('RECHAZADO')};
+  var n=$('#anul');if(n)n.onclick=function(){resolver('ANULADO')};
+}
+
+/* ——— Enlaces ——— */
+function urlEnlace(k){return BASE_CAT+k}
+function cargarEnlaces(){return api('listarEnlaces',{}).then(function(r){if(r&&r.ok)S.enlaces=r.enlaces})}
+function vistaEnlaces(){
+  $('#app').innerHTML='<h2>Enlaces de catálogo</h2><div class="empty">Cargando…</div>';
+  cargarEnlaces().then(function(){
+    var por={};S.enlaces.forEach(function(e){(por[e.vendedor]=por[e.vendedor]||[]).push(e)});
+    var h='<div class="row"><h2 class="g">Enlaces de catálogo</h2><button class="btn mini" id="nuevoE">Nuevo enlace</button></div><p class="mut">Cada vendedor comparte su propio enlace con sus clientes. Si un enlace se desactiva o se regenera, el anterior deja de servir.</p>';
+    Object.keys(por).forEach(function(v){
+      h+='<div class="card"><b>'+esc(por[v][0].nombre)+'</b>'+por[v].map(function(e){
+        return '<div class="'+(e.activo?'':'off')+'" style="margin-top:10px"><div class="row"><span class="g"><b>Lista '+esc(e.lista)+'</b> · '+esc(LISTAS[e.lista]||'')+(e.activo?'':' · <span class="pill p-RECHAZADO">desactivado</span>')+'</span></div>'
+          +'<div class="url">'+esc(urlEnlace(e.clave))+'</div><div class="row">'
+          +'<button class="btn mini" data-a="cop" data-k="'+esc(e.clave)+'">Copiar</button><a class="btn s mini" style="text-decoration:none" target="_blank" rel="noopener" href="'+esc(urlEnlace(e.clave))+'">Abrir</a>'
+          +'<button class="btn s mini" data-a="tog" data-v="'+esc(e.vendedor)+'" data-l="'+esc(e.lista)+'" data-on="'+(e.activo?1:0)+'">'+(e.activo?'Desactivar':'Activar')+'</button>'
+          +'<button class="btn s mini" data-a="reg" data-v="'+esc(e.vendedor)+'" data-l="'+esc(e.lista)+'">Regenerar</button></div></div>'}).join('')+'</div>';
+    });
+    $('#app').innerHTML=h;
+    $('#app').onclick=function(e){
+      var b=e.target.closest('button');if(!b)return;
+      if(b.id==='nuevoE')return nuevoEnlace();
+      if(b.dataset.a==='cop')return copiar(urlEnlace(b.dataset.k));
+      if(b.dataset.a==='tog')return accionEnlace({vendedor:b.dataset.v,lista:b.dataset.l,activo:b.dataset.on!=='1'});
+      if(b.dataset.a==='reg')return preguntar('¿Regenerar este enlace? El enlace anterior dejará de funcionar y tendrás que enviar el nuevo.',function(){accionEnlace({vendedor:b.dataset.v,lista:b.dataset.l,regenerar:true})});
+    };
+  });
+}
+function accionEnlace(d){api('cambiarEnlace',d,nuevaLlave()).then(function(r){toast((r&&r.message)||'No se pudo');if(r&&r.ok)vistaEnlaces()}).catch(function(){toast('No pudimos conectar')})}
+function preguntar(txt,fn){modal('<h2>Confirmar</h2><p>'+esc(txt)+'</p><div class="row"><button class="btn bad" id="si">Sí, continuar</button><button class="btn s" id="no">Cancelar</button></div>');$('#no').onclick=cerrar;$('#si').onclick=function(){cerrar();fn()}}
+function nuevoEnlace(){
+  var vs=S.vendedores.filter(function(v){return v.activo}).map(function(v){return '<option value="'+esc(v.id)+'">'+esc(v.nombre)+'</option>'}).join('')+'<option value="detal">Detal (público)</option>';
+  modal('<h2>Nuevo enlace</h2><form class="fld" id="fNE"><label>Vendedor<select id="neV">'+vs+'</select></label><label>Lista de precios<select id="neL">'+[1,2,3,4,5].map(function(i){return '<option value="'+i+'">'+i+' · '+esc(LISTAS[i])+'</option>'}).join('')+'</select></label>'
+    +'<div class="row"><button class="btn" type="submit">Crear enlace</button><button class="btn s" type="button" id="no">Cancelar</button></div></form>');
+  $('#no').onclick=cerrar;
+  $('#fNE').onsubmit=function(e){e.preventDefault();api('cambiarEnlace',{vendedor:$('#neV').value,lista:$('#neL').value,crear:true},nuevaLlave()).then(function(r){toast((r&&r.message)||'No se pudo');if(r&&r.ok){cerrar();vistaEnlaces()}})};
+}
+
+/* ——— Vendedores ——— */
+function vistaVendedores(){
+  cargarVendedores().then(function(){
+    var h='<div class="row"><h2 class="g">Vendedores</h2><button class="btn mini" id="nuevoV">Nuevo vendedor</button></div><p class="mut">El WhatsApp es adonde llegan los pedidos que hacen los clientes desde el enlace de cada vendedor.</p>';
+    h+=S.vendedores.map(function(v){
+      return '<div class="card '+(v.activo?'':'off')+'"><div class="row"><div class="g"><b>'+esc(v.nombre)+'</b> <span class="mut">· '+esc(v.id)+'</span>'+(v.activo?'':' <span class="pill p-RECHAZADO">inactivo</span>')
+        +'<div class="mut">WhatsApp '+esc(v.whatsapp||'— falta —')+(v.zona?' · '+esc(v.zona):'')+'</div><div class="mut">'+(v.tienePin?'Tiene PIN':'<b style="color:var(--bad)">Sin PIN</b>')+'</div></div>'
+        +'<button class="btn s mini" data-a="ed" data-id="'+esc(v.id)+'">Editar</button><button class="btn s mini" data-a="pin" data-id="'+esc(v.id)+'">'+(v.tienePin?'Cambiar PIN':'Poner PIN')+'</button></div></div>'}).join('');
+    $('#app').innerHTML=h;
+    $('#app').onclick=function(e){var b=e.target.closest('button');if(!b)return;if(b.id==='nuevoV')return formVendedor();if(b.dataset.a==='ed')return formVendedor(b.dataset.id);if(b.dataset.a==='pin')return formPin(b.dataset.id)};
+  });
+}
+function formVendedor(id){
+  var v=id?S.vendedores.filter(function(x){return x.id===id})[0]:{id:'',nombre:'',whatsapp:'',zona:'',activo:true};
+  modal('<h2>'+(id?'Editar vendedor':'Nuevo vendedor')+'</h2><form class="fld" id="fV"><label>Código (3 a 20 letras o números, sin espacios)<input id="vId" value="'+esc(v.id)+'" '+(id?'readonly':'')+' maxlength="20" autocapitalize="off"></label>'
+    +'<label>Nombre<input id="vNom" value="'+esc(v.nombre)+'" maxlength="60"></label><label>WhatsApp (10 dígitos)<input id="vWa" value="'+esc(v.whatsapp)+'" inputmode="numeric" maxlength="12" placeholder="3001234567"></label>'
+    +'<label>Zona<input id="vZona" value="'+esc(v.zona)+'" maxlength="200"></label><label><span>Estado</span><select id="vAct"><option value="1"'+(v.activo?' selected':'')+'>Activo</option><option value="0"'+(v.activo?'':' selected')+'>Inactivo (su enlace y su PIN dejan de servir)</option></select></label>'
+    +'<div id="vErr"></div><div class="row"><button class="btn" type="submit">Guardar</button><button class="btn s" type="button" id="no">Cancelar</button></div></form>');
+  $('#no').onclick=cerrar;
+  $('#fV').onsubmit=function(e){
+    e.preventDefault();
+    api('guardarVendedor',{id:$('#vId').value.trim().toLowerCase(),nombre:$('#vNom').value,whatsapp:$('#vWa').value,zona:$('#vZona').value,activo:$('#vAct').value==='1',crear:!id},nuevaLlave()).then(function(r){
+      if(!r||!r.ok){var m={id:'#vId',nombre:'#vNom',whatsapp:'#vWa'}[r&&r.campo];if(m)marcar($(m));$('#vErr').innerHTML='<div class="err">'+esc((r&&r.message)||'No se pudo guardar')+'</div>';return}
+      cerrar();toast(r.message);vistaVendedores();
+    }).catch(function(){$('#vErr').innerHTML='<div class="err">No pudimos conectar.</div>'});
+  };
+}
+function formPin(id){
+  var propio=id==='juancarlos'&&S.rol!=='administrador'?'':'';
+  modal('<h2>PIN de '+esc(nombreVend(id))+'</h2><p class="mut">Se lo entregas tú a la persona. Lleva de 4 a 6 números. Al cambiarlo, se cierran sus sesiones anteriores.</p><form class="fld" id="fP"><label>PIN nuevo<input id="pN" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password"></label><label>Repite el PIN<input id="pN2" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password"></label><div id="pE"></div>'
+    +'<div class="row"><button class="btn" type="submit">Guardar PIN</button><button class="btn s" type="button" id="no">Cancelar</button></div></form>');
+  $('#no').onclick=cerrar;
+  $('#fP').onsubmit=function(e){
+    e.preventDefault();var a=$('#pN').value.trim(),b=$('#pN2').value.trim();
+    if(!/^\d{4,6}$/.test(a)){marcar($('#pN'));return}
+    if(a!==b){marcar($('#pN2'));$('#pE').innerHTML='<div class="err">Los dos PIN no coinciden.</div>';return}
+    api('configurarPin',{usuario:id,nuevo:a},nuevaLlave()).then(function(r){if(!r||!r.ok){$('#pE').innerHTML='<div class="err">'+esc((r&&r.message)||'No se pudo guardar')+'</div>';return}cerrar();toast('PIN guardado');vistaVendedores()});
+  };
+}
+
+/* ——— Ajustes ——— */
+function vistaAjustes(){
+  api('leerAjustes',{}).then(function(r){
+    if(!r||!r.ok){$('#app').innerHTML='<div class="err">No se pudieron leer los ajustes.</div>';return}
+    var adm=r.puedeCambiarMinimo;
+    $('#app').innerHTML='<h2>Ajustes</h2><div class="card"><b>WhatsApp de Detal</b><div class="mut">Adonde llegan los pedidos del catálogo Detal.</div><form class="row" id="fW" style="margin-top:8px"><input class="g" id="aWa" value="'+esc(r.whatsapp_detal)+'" inputmode="numeric" maxlength="12"><button class="btn mini" type="submit">Guardar</button></form></div>'
+      +'<div class="card"><b>Pedido mínimo</b><div class="mut">En pesos. No se puede enviar un pedido por debajo.'+(adm?'':' Solo lo cambia el administrador.')+'</div><form class="row" id="fM" style="margin-top:8px"><input class="g" id="aMin" value="'+esc(r.pedido_minimo)+'" inputmode="numeric" '+(adm?'':'disabled')+'><button class="btn mini" type="submit" '+(adm?'':'disabled')+'>Guardar</button></form></div>'
+      +'<div class="card"><b>Pocas unidades</b><div class="mut">Con este número o menos se muestra «Quedan N» en el catálogo.</div><form class="row" id="fU" style="margin-top:8px"><input class="g" id="aPoc" value="'+esc(r.pocas_unidades)+'" inputmode="numeric" '+(adm?'':'disabled')+'><button class="btn mini" type="submit" '+(adm?'':'disabled')+'>Guardar</button></form></div>'
+      +'<div class="card"><b>Cambiar mi PIN</b><form class="fld" id="fC"><label>PIN actual<input id="cA" type="password" inputmode="numeric" maxlength="6" autocomplete="current-password"></label><label>PIN nuevo<input id="cN" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password"></label><button class="btn mini" type="submit" style="justify-self:start">Cambiar PIN</button></form></div>';
+    var guardar=function(clave,id){return function(e){e.preventDefault();api('guardarAjuste',{clave:clave,valor:$(id).value},nuevaLlave()).then(function(x){toast((x&&x.message)||'No se pudo')})}};
+    $('#fW').onsubmit=guardar('whatsapp_detal','#aWa');$('#fM').onsubmit=guardar('pedido_minimo','#aMin');$('#fU').onsubmit=guardar('pocas_unidades','#aPoc');
+    $('#fC').onsubmit=function(e){e.preventDefault();api('cambiarPin',{actual:$('#cA').value,nuevo:$('#cN').value},nuevaLlave()).then(function(x){toast((x&&x.message)||'No se pudo');if(x&&x.ok){$('#cA').value='';$('#cN').value=''}})};
+  });
+}
+
+/* ——— Stock (solo administrador): Excel de Factusol de cada lunes ——— */
+var XLSX_URL='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+function cargarXlsx(){return new Promise(function(ok,no){if(window.XLSX)return ok();var s=document.createElement('script');s.src=XLSX_URL;s.onload=ok;s.onerror=function(){no(new Error('No se pudo cargar el lector de Excel'))};document.head.appendChild(s)})}
+var FILAS=null;
+/* Números como se escriben en Colombia: «1.200» son mil doscientos y «12,5» es doce y medio (un texto así no debe leerse como 1,2). */
+function aNumero(v){
+  if(typeof v==='number')return isFinite(v)?v:0;
+  var s=String(v==null?'':v).trim().replace(/\s/g,'');
+  if(/^-?\d{1,3}(\.\d{3})+(,\d+)?$/.test(s))s=s.replace(/\./g,'').replace(',','.');
+  else if(/^-?\d+,\d+$/.test(s))s=s.replace(',','.');
+  else s=s.replace(/[^0-9.\-]/g,'');
+  var n=Number(s);return isFinite(n)?n:0;
+}
+function vistaStock(){
+  $('#app').innerHTML='<h2>Cargar stock de Factusol</h2><div class="card"><p class="mut">Cada lunes (o el primer día hábil): sube el Excel que exporta Factusol. Reemplaza el stock anterior y reinicia el descuento de pedidos aprobados. Los códigos deben existir en la hoja Productos.</p>'
+    +'<label class="fld"><span class="mut">Archivo Excel (.xlsx, .xls) o CSV</span><input type="file" id="fArch" accept=".xlsx,.xls,.csv"></label><div id="stBody"></div></div>';
+  $('#fArch').onchange=function(){
+    var f=this.files[0];if(!f)return;
+    $('#stBody').innerHTML='<p class="mut">Leyendo…</p>';
+    cargarXlsx().then(function(){return f.arrayBuffer()}).then(function(buf){
+      var wb=XLSX.read(buf,{type:'array'}),ws=wb.Sheets[wb.SheetNames[0]],filas=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      var head=0;while(head<filas.length&&filas[head].filter(function(c){return String(c).trim()}).length<2)head++;
+      FILAS={cab:filas[head].map(String),datos:filas.slice(head+1)};mapaColumnas();
+    }).catch(function(e){$('#stBody').innerHTML='<div class="err">'+esc(e.message||'No se pudo leer el archivo')+'</div>'});
+  };
+}
+function mapaColumnas(){
+  var cab=FILAS.cab,ic=0,iu=1;
+  cab.forEach(function(c,i){if(/c[oó]d|referen|art[ií]culo/i.test(c)&&!ic)ic=i;});
+  cab.forEach(function(c,i){if(/stock|exist|unid|cant/i.test(c)&&i!==ic)iu=i});
+  var op=function(sel){return cab.map(function(c,i){return '<option value="'+i+'"'+(i===sel?' selected':'')+'>'+esc(c||('Columna '+(i+1)))+'</option>'}).join('')};
+  $('#stBody').innerHTML='<div class="two fld"><label>Columna del código<select id="cC">'+op(ic)+'</select></label><label>Columna de unidades<select id="cU">'+op(iu)+'</select></label></div><div id="stPrev"></div><button class="btn" id="stGo" style="margin-top:10px">Cargar stock</button><div id="stRes"></div>';
+  var prev=function(){
+    var c=Number($('#cC').value),u=Number($('#cU').value);
+    var datos=FILAS.datos.map(function(f){return {codigo:String(f[c]==null?'':f[c]).trim(),unidades:aNumero(f[u])}}).filter(function(x){return x.codigo});
+    FILAS.salida=datos;
+    $('#stPrev').innerHTML='<p class="mut">'+datos.length+' filas. Vista previa:</p><table><thead><tr><th>Código</th><th class="r">Unidades</th></tr></thead><tbody>'+datos.slice(0,5).map(function(x){return '<tr><td>'+esc(x.codigo)+'</td><td class="r">'+x.unidades+'</td></tr>'}).join('')+'</tbody></table>';
+  };
+  $('#cC').onchange=prev;$('#cU').onchange=prev;prev();
+  $('#stGo').onclick=function(){
+    var b=this;b.disabled=true;b.textContent='Cargando…';
+    api('cargarStock',{filas:FILAS.salida},nuevaLlave()).then(function(r){
+      b.disabled=false;b.textContent='Cargar stock';
+      if(!r||!r.ok){$('#stRes').innerHTML='<div class="err">'+esc((r&&r.message)||'No se pudo cargar')+(r&&r.desconocidos&&r.desconocidos.length?'<br>Códigos que no existen: '+esc(r.desconocidos.join(', ')):'')+'</div>';return}
+      $('#stRes').innerHTML='<div class="warn" style="background:#dff3e4;color:var(--ok)">'+esc(r.message)+(r.repetidos?' · '+r.repetidos+' códigos repetidos se sumaron.':'')+'</div>'+(r.desconocidos&&r.desconocidos.length?'<div class="warn">No existen en Productos: '+esc(r.desconocidos.join(', '))+'</div>':'');
+    }).catch(function(){b.disabled=false;b.textContent='Cargar stock';$('#stRes').innerHTML='<div class="err">No pudimos conectar.</div>'});
+  };
+}
+
+/* ——— Inicio ——— */
+setInterval(function(){if(S.token&&document.visibilityState==='visible'&&S.tab==='pedidos'&&$('#ov').hidden){cargarPedidos().then(function(){pintarTabs();vistaPedidos()})}},45000);
+if(S.token){api('miSesion',{}).then(function(r){if(r&&r.ok){S.rol=r.rol;S.usuario=r.usuario;arrancar()}else vistaLogin()}).catch(function(){vistaLogin('No pudimos conectar. Intenta de nuevo.')})}
+else{api('estadoInstalacion',{}).then(function(r){if(r&&r.ok&&!r.adminConfigurado)vistaPrimera();else vistaLogin()}).catch(function(){vistaLogin()})}
+})();
+</script>
+</body>
+</html>

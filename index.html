@@ -113,6 +113,17 @@ footer{margin-top:44px;padding-block:28px;color:var(--mut);font-size:13px;text-a
 .msg{font-size:14px;color:var(--ok);margin-top:10px;min-height:20px}
 .err{min-height:60vh;display:grid;place-items:center;text-align:center;padding:24px}
 .err h2{font:600 28px var(--disp);margin:0 0 8px}
+.vbar{background:#1c1a15;color:#fff;position:sticky;top:0;z-index:15}
+.vb{display:flex;gap:8px;align-items:center;padding-block:8px;flex-wrap:wrap;font-size:14px}
+.vb span{margin-right:auto}
+.vb button{border:1.5px solid #3a3426;background:transparent;color:var(--gold);border-radius:99px;padding:6px 14px;font-weight:600;font-size:13px;min-height:34px}
+.lnk{background:none;border:0;color:var(--mut);text-decoration:underline;font-size:13px;padding:8px}
+.pill{display:inline-block;border-radius:99px;padding:2px 10px;font-size:12px;font-weight:600}
+.p-POR_APROBAR{background:#fff1cc;color:#9a6b00}.p-APROBADO{background:#dff3e4;color:var(--ok)}.p-RECHAZADO,.p-ANULADO{background:#f4dddb;color:var(--bad)}
+.mp{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-top:10px}
+.mp .r{display:flex;gap:10px;align-items:center;justify-content:space-between}
+.mp .d{margin-top:8px;font-size:13px;color:var(--mut);display:none}.mp.on .d{display:block}
+.url{font:12px ui-monospace,Consolas,monospace;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;word-break:break-all;margin:6px 0}
 .aviso{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:#fff;border-radius:99px;padding:12px 20px;font-size:14px;z-index:40;max-width:90vw;opacity:0;pointer-events:none;transition:opacity .2s;text-align:center}
 .aviso.on{opacity:1}
 </style>
@@ -124,14 +135,15 @@ footer{margin-top:44px;padding-block:28px;color:var(--mut);font-size:13px;text-a
   <div class="who" id="who" hidden></div>
 </div></header>
 
+<div class="vbar" id="vbar" hidden></div>
 <main class="wrap" id="app"><div class="grid" style="margin-top:24px"><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div></div></main>
-<footer><div class="wrap">Distrisander Cosméticos · Bucaramanga · Precios con IVA incluido</div></footer>
+<footer><div class="wrap">Distrisander Cosméticos · Bucaramanga · Precios con IVA incluido<div><button class="lnk" id="soyAsesor" type="button">Soy asesor de Distrisander</button></div></div></footer>
 <div class="aviso" id="aviso" role="status"></div>
 
 <div class="fab" id="fab" hidden><button id="fabBtn"><span id="fabN">0 productos</span><em id="fabT">$0</em></button></div>
 
 <div class="ov" id="ov" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Tu pedido">
-  <div class="sh"><h2>Tu pedido</h2><button class="x" id="close" aria-label="Cerrar">✕</button></div>
+  <div class="sh"><h2 id="stit">Tu pedido</h2><button class="x" id="close" aria-label="Cerrar">✕</button></div>
   <div id="cuerpo"></div>
 </div></div>
 
@@ -147,7 +159,8 @@ var guardar=function(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e)
 var leer=function(k){try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}};
 var pausa=function(ms){return new Promise(function(r){setTimeout(r,ms)})};
 var CLAVE=(new URLSearchParams(location.search).get('k')||'').replace(/[^A-Za-z0-9]/g,'').slice(0,40);
-var K_CAT='ds_cat_'+CLAVE,K_CAR='ds_carrito_'+CLAVE,K_CLI='ds_cliente';
+var K_CAT='ds_cat_'+CLAVE,K_CAR='ds_carrito_'+CLAVE,K_CLI='ds_cliente',K_VEND='ds_vend';
+var SES=null;                      // sesión de asesor (modo vendedor): {token, usuario, nombre}
 var CAT=null,P={},CART={},IDEM='',filtro='',ULT=null;
 
 /* ——— Servidor: reintentos con espera; el pedido lleva llave para que NUNCA se duplique (de KAÉM) ——— */
@@ -157,7 +170,7 @@ function api(action,data,idem){
     intento++;
     var ctrl=window.AbortController?new AbortController():null,t=setTimeout(function(){if(ctrl)ctrl.abort()},45000);
     return fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow',cache:'no-store',signal:ctrl?ctrl.signal:undefined,
-      body:JSON.stringify({action:action,data:data,idem:idem||undefined})})
+      body:JSON.stringify({action:action,data:data,idem:idem||undefined,token:SES?SES.token:undefined})})
       .then(function(r){return r.text()})
       .then(function(txt){clearTimeout(t);var j;try{j=JSON.parse(txt)}catch(e){throw new Error('respuesta')}return j})
       .then(function(j){if(j&&j.enCurso&&enCurso<8){enCurso++;intento--;return pausa(2500).then(una)}return j})
@@ -168,7 +181,10 @@ function api(action,data,idem){
         throw e;
       });
   }
-  return una();
+  return una().then(function(j){
+    if(j&&j.pinRequerido&&SES){SES=null;try{localStorage.removeItem(K_VEND)}catch(e){}barraVend();aviso('Tu sesión venció. Entra de nuevo como asesor.')}
+    return j;
+  });
 }
 
 function aviso(msg){var a=$('#aviso');a.textContent=msg;a.classList.add('on');clearTimeout(a._t);a._t=setTimeout(function(){a.classList.remove('on')},Math.min(7000,2400+msg.length*45))}
@@ -297,7 +313,7 @@ function drawer(){
     +'<div class="msg" id="sentMsg" role="status"></div></form>';
   $('#cuerpo').innerHTML=h;
 }
-function abrir(){drawer();$('#ov').hidden=false;document.body.style.overflow='hidden'}
+function abrir(){$('#stit').textContent='Tu pedido';drawer();$('#ov').hidden=false;document.body.style.overflow='hidden'}
 function cerrar(){$('#ov').hidden=true;document.body.style.overflow=''}
 function recordar(){var o={};CAMPOS.forEach(function(k){if(k!=='observaciones')o[k]=val(ID_CAMPO[k])});guardar(K_CLI,o)}
 function marcar(campo){var el=document.getElementById(ID_CAMPO[campo]);if(!el)return;el.classList.remove('mal');void el.offsetWidth;el.classList.add('mal');el.focus()}
@@ -333,12 +349,14 @@ function textoWsp(r,cli,pago,obs){
 }
 function exito(r,cli,pago,obs){
   CART={};IDEM='';guardar(K_CAR,CART);refresh();
-  var txt=textoWsp(r,cli,pago,obs),url='https://wa.me/57'+String(r.destino||'').replace(/\D/g,'')+'?text='+encodeURIComponent(txt);
+  var txt=textoWsp(r,cli,pago,obs),esAsesor=!!SES&&!!CAT&&SES.usuario===CAT.vendedorId;
+  // Un asesor que monta el pedido en la visita lo comparte con Juan Carlos o con el grupo (elige el chat); un cliente lo manda a su asesor.
+  var url=esAsesor?'https://wa.me/?text='+encodeURIComponent(txt):'https://wa.me/57'+String(r.destino||'').replace(/\D/g,'')+'?text='+encodeURIComponent(txt);
   var primer=(cli.recibe||'').split(' ')[0];primer=primer.charAt(0).toUpperCase()+primer.slice(1).toLowerCase();
   $('#cuerpo').innerHTML='<div class="okbox"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="29"/><path d="M19 33l9 9 17-19"/></svg>'
     +'<h3>¡Listo'+(primer?', '+esc(primer):'')+'!</h3><p>Tu pedido <b>'+esc(r.id)+'</b> quedó guardado.</p><p>Total '+cop(r.total)+' · '+r.unidades+' unidades</p>'
-    +'<p>Envíalo ahora por WhatsApp a tu asesor para confirmarlo.</p></div>'
-    +'<a class="wa" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Enviar por WhatsApp</a>'
+    +'<p>'+(esAsesor?'Ya llegó al panel de Juan Carlos. Compártelo también por WhatsApp con Juan Carlos o con el grupo.':'Envíalo ahora por WhatsApp a tu asesor para confirmarlo.')+'</p></div>'
+    +'<a class="wa" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">'+(esAsesor?'Compartir por WhatsApp':'Enviar por WhatsApp')+'</a>'
     +'<button class="sec" id="copiar" type="button">Copiar el pedido</button><div class="msg" id="sentMsg" role="status"></div>'
     +'<button class="sec" id="seguir" type="button">Seguir viendo el catálogo</button>';
   $('#copiar').addEventListener('click',function(){
@@ -347,12 +365,75 @@ function exito(r,cli,pago,obs){
   $('#seguir').addEventListener('click',cerrar);
 }
 
+/* ——— Modo vendedor: el asesor entra con su PIN al MISMO catálogo y ve sus pedidos y sus enlaces ——— */
+var ESTADO={POR_APROBAR:'Por aprobar',APROBADO:'Aprobado',RECHAZADO:'Rechazado',ANULADO:'Anulado'};
+var LISTAS={1:'Bucaramanga y área',2:'Sábana de Torres y pueblos',3:'Pamplona, Cúcuta y área',4:'Arauca, Tibú y zona roja',5:'Detal'};
+function hoja(titulo,html){$('#stit').textContent=titulo;$('#cuerpo').innerHTML=html;$('#ov').hidden=false;document.body.style.overflow='hidden'}
+function barraVend(){
+  var b=$('#vbar'),s=$('#soyAsesor');
+  if(!SES){b.hidden=true;b.innerHTML='';if(s)s.hidden=false;return}
+  if(s)s.hidden=true;b.hidden=false;
+  b.innerHTML='<div class="wrap vb"><span>Asesor: <b>'+esc(SES.nombre||SES.usuario)+'</b></span><button data-v="ped">Mis pedidos</button><button data-v="enl">Mis enlaces</button><button data-v="out">Salir</button></div>';
+}
+function loginVend(msg){
+  var pre=(CAT&&CAT.vendedorId&&CAT.vendedorId!=='detal')?CAT.vendedorId:'';
+  hoja('Soy asesor','<form class="fld" id="fLoginV" autocomplete="off">'+(msg?'<div class="warn">'+esc(msg)+'</div>':'')
+    +'<label>Tu código de asesor<input id="vU" value="'+esc(pre)+'" autocapitalize="off" autocomplete="username" placeholder="Ej. tatiana"></label>'
+    +'<label>PIN<input id="vP" type="password" inputmode="numeric" maxlength="6" autocomplete="current-password" placeholder="4 a 6 números"></label><div id="vE"></div>'
+    +'<button class="send" type="submit">Entrar</button><p class="note" style="text-align:center;margin-top:10px">Juan Carlos y Kevin entran por el <a href="panel.html">panel</a>.</p></form>');
+}
+function enviarLogin(){
+  var u=val('vU').toLowerCase(),p=val('vP');
+  if(!u){marcarId('vU');return}
+  if(!/^\d{4,6}$/.test(p)){marcarId('vP');return}
+  var btn=document.querySelector('#fLoginV .send');btn.disabled=true;btn.textContent='Entrando…';
+  api('verificarPin',{usuario:u,pin:p}).then(function(r){
+    btn.disabled=false;btn.textContent='Entrar';
+    if(!r||!r.ok){$('#vE').innerHTML='<div class="warn">'+esc((r&&r.message)||'No se pudo entrar.')+'</div>';return}
+    if(r.rol!=='vendedor'){$('#vE').innerHTML='<div class="warn">Esta entrada es para asesores. Tú entras por el <a href="panel.html">panel</a>.</div>';return}
+    SES={token:r.token,usuario:r.usuario,nombre:(CAT&&CAT.vendedorId===r.usuario)?CAT.vendedor:r.usuario};
+    guardar(K_VEND,SES);barraVend();cerrar();aviso('Hola, '+(SES.nombre||SES.usuario)+'. Ya puedes ver tus pedidos y tus enlaces.');
+  }).catch(function(){btn.disabled=false;btn.textContent='Entrar';$('#vE').innerHTML='<div class="warn">No pudimos conectar. Revisa tu internet.</div>'});
+}
+function marcarId(id){var el=document.getElementById(id);if(!el)return;el.classList.remove('mal');void el.offsetWidth;el.classList.add('mal');el.focus()}
+function misPedidos(){
+  hoja('Mis pedidos','<p class="note">Solo Juan Carlos aprueba los pedidos. Aquí ves cómo va cada uno.</p><div id="mpLista" class="empty">Cargando…</div><button class="sec" id="mpAct" type="button">Actualizar</button>');
+  api('listarPedidos',{}).then(function(r){
+    if(!r||!r.ok){$('#mpLista').innerHTML=(r&&r.pinRequerido)?'':'No se pudieron cargar tus pedidos.';return}
+    $('#mpLista').className='';
+    $('#mpLista').innerHTML=r.pedidos.length?r.pedidos.map(function(p){
+      return '<div class="mp" data-id="'+esc(p.id)+'"><div class="r"><div><b>'+esc(p.negocio)+'</b><div class="note" style="margin:0">'+esc(p.id)+' · '+esc(p.fecha)+'</div></div><div style="text-align:right"><b>'+cop(p.total)+'</b><br><span class="pill p-'+esc(p.estado)+'">'+esc(ESTADO[p.estado]||p.estado)+'</span></div></div>'
+        +'<div class="d">'+esc(p.recibe)+' · '+esc(p.telefono)+' · '+esc(p.forma_pago)+'<br>'+p.lineas.map(function(l){return l.cantidad+' × '+esc(l.nombre)+(l.tono?' ('+esc(l.tono)+')':'')}).join('<br>')+(p.revisado_por?'<br><i>'+esc(p.revisado_por)+'</i>':'')+'</div></div>'}).join(''):'<div class="empty">Todavía no tienes pedidos.</div>';
+  }).catch(function(){$('#mpLista').textContent='No pudimos conectar.'});
+}
+function misEnlaces(){
+  hoja('Mis enlaces','<p class="note">Estos son tus enlaces: cada pedido que llegue por ellos queda a tu nombre. Envíaselos solo a tus clientes.</p><div id="meLista" class="empty">Cargando…</div>');
+  api('listarEnlaces',{}).then(function(r){
+    if(!r||!r.ok){$('#meLista').innerHTML=(r&&r.pinRequerido)?'':'No se pudieron cargar tus enlaces.';return}
+    $('#meLista').className='';
+    var base=location.origin+location.pathname.replace(/[^\/]*$/,'')+'index.html?k=';
+    $('#meLista').innerHTML=r.enlaces.length?r.enlaces.map(function(e){
+      return '<div class="mp'+(e.activo?'':' off')+'"><b>Lista '+esc(e.lista)+'</b> · '+esc(LISTAS[e.lista]||'')+(e.activo?'':' <span class="pill p-RECHAZADO">desactivado</span>')+'<div class="url">'+esc(base+e.clave)+'</div><button class="sec" data-cop="'+esc(base+e.clave)+'" type="button" style="margin-top:4px">Copiar enlace</button></div>'}).join(''):'<div class="empty">Todavía no tienes enlaces. Pídele uno a Juan Carlos.</div>';
+  }).catch(function(){$('#meLista').textContent='No pudimos conectar.'});
+}
+function salirVend(){api('cerrarSesion',{}).catch(function(){});SES=null;try{localStorage.removeItem(K_VEND)}catch(e){}barraVend();aviso('Saliste del modo asesor.')}
+try{SES=JSON.parse(localStorage.getItem(K_VEND)||'null')}catch(e){SES=null}
+barraVend();
+$('#soyAsesor').addEventListener('click',function(){loginVend()});
+$('#vbar').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;if(b.dataset.v==='ped')misPedidos();else if(b.dataset.v==='enl')misEnlaces();else if(b.dataset.v==='out')salirVend()});
+
 $('#fabBtn').addEventListener('click',abrir);
 $('#close').addEventListener('click',cerrar);
 $('#ov').addEventListener('click',function(e){if(e.target.id==='ov')cerrar()});
 document.addEventListener('keydown',function(e){if(e.key==='Escape')cerrar()});
-$('#cuerpo').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;if(b.dataset.p)setQty(b.dataset.p,1);else if(b.dataset.m)setQty(b.dataset.m,-1)});
-$('#cuerpo').addEventListener('submit',function(e){e.preventDefault();enviar()});
+$('#cuerpo').addEventListener('click',function(e){
+  var m=e.target.closest('.mp');if(m&&!e.target.closest('button'))m.classList.toggle('on');
+  var b=e.target.closest('button');if(!b)return;
+  if(b.dataset.cop){(navigator.clipboard?navigator.clipboard.writeText(b.dataset.cop):Promise.reject()).then(function(){aviso('Enlace copiado')},function(){window.prompt('Copia el enlace:',b.dataset.cop)});return}
+  if(b.id==='mpAct'){misPedidos();return}
+  if(b.dataset.p)setQty(b.dataset.p,1);else if(b.dataset.m)setQty(b.dataset.m,-1);
+});
+$('#cuerpo').addEventListener('submit',function(e){e.preventDefault();if(e.target.id==='fLoginV')enviarLogin();else enviar()});
 $('#cuerpo').addEventListener('input',function(e){if(e.target.closest&&e.target.closest('#form')&&e.target.classList)e.target.classList.remove('mal')});
 cargar();
 })();
