@@ -229,7 +229,7 @@ function descuentosHtml(p){
   var d=p.descuentos;if(!d||!d.ahorroTotal)return '';
   var h='<div class="card" style="background:#fbf5e3;border-color:var(--gold)"><b>Para facturar (referencia)</b><div class="mut">El total del pedido no cambia: estos descuentos se aplican al facturar.</div>';
   d.volumen.forEach(function(v){h+='<div class="row" style="margin-top:6px"><span class="g">'+esc(v.nombre)+' · '+v.unidades+' unid. · '+v.pct+' % por volumen</span><b>- '+cop(v.ahorro)+'</b></div>'});
-  if(d.prontoPago)h+='<div class="row" style="margin-top:6px"><span class="g">'+esc(d.prontoPago.marca)+': '+d.prontoPago.pct+' % si paga de contado o por transferencia (sobre '+cop(d.prontoPago.base)+')</span><b>- '+cop(d.prontoPago.ahorro)+'</b></div>';
+  if(d.prontoPago)h+='<div class="row" style="margin-top:6px"><span class="g">'+esc(d.prontoPago.marca)+': '+d.prontoPago.pct+' % si paga el mismo día de la entrega, de contado o por transferencia (sobre'+cop(d.prontoPago.base)+')</span><b>- '+cop(d.prontoPago.ahorro)+'</b></div>';
   return h+'<div class="row" style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px"><b class="g">Descuento total de referencia</b><b>- '+cop(d.ahorroTotal)+'</b></div></div>';
 }
 function detallePedido(id,extra){
