@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#111111">
+<link rel="manifest" href="panel.webmanifest">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/panel-apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Panel DS">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <title>Panel Distrisander</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@400;500;600&display=swap">
 <style>
@@ -613,5 +620,6 @@ if(S.token){api('miSesion',{}).then(function(r){if(r&&r.ok){S.rol=r.rol;S.usuari
 else{api('estadoInstalacion',{}).then(function(r){if(r&&r.ok&&!r.adminConfigurado)vistaPrimera();else vistaLogin()}).catch(function(){vistaLogin()})}
 })();
 </script>
+<script>if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})</script>
 </body>
 </html>
