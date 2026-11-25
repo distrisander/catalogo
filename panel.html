@@ -31,7 +31,7 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scroll-padding-top:72px;color-scheme:light}
 [hidden]{display:none!important}
-body{margin:0;color:var(--ink);font:0.9375rem/1.55 var(--body);-webkit-font-smoothing:antialiased;background:radial-gradient(1100px 480px at 88% -8%,rgba(201,162,75,.14),transparent 62%) fixed,var(--bg);padding-bottom:calc(88px + env(safe-area-inset-bottom,0px))}
+body{margin:0;color:var(--ink);font:0.9375rem/1.55 var(--body);-webkit-font-smoothing:antialiased;background:radial-gradient(1100px 480px at 88% -8%,rgba(201,162,75,.14),transparent 62%) fixed,var(--bg);padding-bottom:calc(88px + env(safe-area-inset-bottom,0px));min-height:100vh;min-height:100dvh}
 /* Foco visible y de alto contraste en TODO lo que se puede usar con teclado */
 :focus{outline:none}
 :focus-visible{outline:3px solid var(--ink);outline-offset:2px;border-radius:6px}
@@ -81,9 +81,9 @@ main{padding:18px max(14px,env(safe-area-inset-left,0px)) 24px max(14px,env(safe
 .mas button.on{border-color:var(--gold);background:#fbf5e3}
 /* Menú lateral (escritorio) */
 @media(min-width:1024px){
-  body{padding-bottom:40px}
-  .shell{display:grid;grid-template-columns:var(--lado) minmax(0,1fr);min-height:100vh}
-  .side{display:flex;flex-direction:column;position:sticky;top:0;height:100vh;height:100dvh;background:linear-gradient(180deg,#151311,#0d0c0a);color:#fff;padding:26px 16px 18px;overflow-y:auto;border-right:1px solid #26221a}
+  body{padding-bottom:0}
+  .shell{display:grid;grid-template-columns:var(--lado) minmax(0,1fr);min-height:100vh;min-height:100dvh}
+  .side{align-self:start;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;height:100dvh;background:linear-gradient(180deg,#151311,#0d0c0a);color:#fff;padding:26px 16px 18px;overflow-y:auto;border-right:1px solid #26221a}
   .mtop,.bar{display:none}
   main{padding:34px 40px 56px}
   .brand{display:flex;align-items:center;gap:12px;padding:0 8px 22px;border-bottom:1px solid #26221a;margin-bottom:14px}
@@ -112,6 +112,18 @@ main{padding:18px max(14px,env(safe-area-inset-left,0px)) 24px max(14px,env(safe
 .sin-sesion .shell{display:block}
 .sin-sesion main{max-width:460px;padding-top:max(44px,env(safe-area-inset-top,0px))}
 
+/* Ventanas bajitas (portátiles con la barra de herramientas, ventanas partidas): el menú se compacta para que quepa sin cortarse */
+@media(min-width:1024px) and (max-height:680px){
+  .side{padding:14px 12px 10px}
+  .brand{padding-bottom:12px;margin-bottom:4px}
+  .brand .mark{width:38px;height:38px;font-size:15px}
+  .brand small{display:none}
+  .grp{margin:10px 8px 4px}
+  .side nav button{min-height:38px}
+  .side .user{margin-top:8px;padding-top:10px}
+  .user .ub{margin-top:8px}
+  .user .ub button{min-height:36px}
+}
 /* ——— Tipografía y encabezados de página ——— */
 h2{font:600 1.625rem/1.15 var(--disp);margin:0 0 12px;letter-spacing:-.005em}
 h3{font:600 1.125rem/1.2 var(--disp);margin:0 0 8px}
