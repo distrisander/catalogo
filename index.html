@@ -129,6 +129,8 @@ section.marca{padding-top:26px;scroll-margin-top:calc(var(--vbh) + 14px)}
 .rapido button:disabled{opacity:.35}
 .maxi{display:block;text-align:center;font-size:12px;color:var(--bad);margin-top:4px}
 @media(min-width:900px){.cb{padding:12px 14px 14px}.cb h3{font-size:15px}.price{font-size:20px}.tag{font-size:11px}}
+.skl{display:grid;gap:10px;margin-top:12px}
+.skl i{display:block;height:72px;border-radius:16px;background:linear-gradient(90deg,#f1ead9 25%,#f8f3e6 50%,#f1ead9 75%);background-size:200% 100%;animation:sk 1.4s infinite}
 .sk{aspect-ratio:3/4;border-radius:var(--r);background:linear-gradient(90deg,#f1ead9 25%,#f8f3e6 50%,#f1ead9 75%);background-size:200% 100%;animation:sk 1.4s infinite}
 @keyframes sk{to{background-position:-200% 0}}
 @media(prefers-reduced-motion:reduce){.sk{animation:none}*{transition-duration:.01ms!important}}
@@ -533,7 +535,7 @@ function drawer(){
     return '<div class="line"><div class="t"><b>'+esc(titulo(l.p.nombre))+'</b><small>'+(l.p.tono?esc(titulo(l.p.tono))+' · ':'')+label(l.p)+' · '+cop(l.p.precio)+'</small></div>'
     +'<div class="qty"><button data-m="'+esc(l.p.codigo)+'" aria-label="Quitar uno">−</button><span>'+l.n+'</span><button data-p="'+esc(l.p.codigo)+'" aria-label="Agregar uno"'+(l.n>=l.p.disponible?' disabled':'')+'>+</button></div><div class="sub">'+cop(l.sub)+'</div></div>'}).join('')
     :'<div class="empty">Tu pedido está vacío.</div>';
-  h+='<div class="tot"><span>Total</span><span>'+cop(tot)+'</span></div><p class="note">Total de referencia con IVA incluido. Los descuentos se aplican al facturar.</p>';
+  h+='<div class="tot"><span>Total</span><span>'+cop(tot)+'</span></div><p class="note">IVA incluido. Descuentos al facturar.</p>';
   if(corto)h+='<div class="warn">El pedido mínimo es de '+cop(min)+'. Te faltan '+cop(falta)+'.</div>';
   h+='<form class="fld" id="form" autocomplete="on" novalidate>'
     +campo('negocio','Nombre del negocio','required autocomplete="organization" maxlength="120"')
@@ -545,7 +547,7 @@ function drawer(){
     +'<label>Observaciones (opcional)<textarea id="f_obs" maxlength="300">'+esc(obs)+'</textarea></label>'
     +'<input class="trampa" id="f_web" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">'
     +'<button class="send" id="send" type="submit"'+(!ls.length||corto?' disabled':'')+'>Enviar pedido</button>'
-    +'<p class="note" style="text-align:center;margin-top:10px">Tu pedido queda guardado y llega a tu asesor '+esc(CAT.vendedorId==='detal'?'de Distrisander':CAT.vendedor)+'. Luego lo envías por WhatsApp para confirmarlo.</p>'
+    +'<p class="note" style="text-align:center;margin-top:10px">Llega a '+esc(CAT.vendedorId==='detal'?'Distrisander':CAT.vendedor)+'; luego lo confirmas por WhatsApp.</p>'
     +'<div class="msg" id="sentMsg" role="status"></div></form>';
   $('#cuerpo').innerHTML=h;$('#cuerpo').scrollTop=st;
 }
@@ -683,7 +685,7 @@ function enviarLogin(){
 }
 function marcarId(id){var el=document.getElementById(id);if(!el)return;el.classList.remove('mal');void el.offsetWidth;el.classList.add('mal');el.focus()}
 function misPedidos(){
-  hoja('Mis pedidos','<p class="note">Solo Juan Carlos aprueba los pedidos. Aquí ves cómo va cada uno.</p><div id="mpLista" class="empty">Cargando…</div><button class="sec" id="mpAct" type="button">Actualizar</button>');
+  hoja('Mis pedidos','<div id="mpLista" class="skl" role="status" aria-label="Cargando"><i></i><i></i><i></i></div><button class="sec" id="mpAct" type="button">Actualizar</button>');
   api('listarPedidos',{}).then(function(r){
     if(!r||!r.ok){$('#mpLista').innerHTML=(r&&r.pinRequerido)?'':'No se pudieron cargar tus pedidos.';return}
     $('#mpLista').className='';
@@ -693,7 +695,7 @@ function misPedidos(){
   }).catch(function(){$('#mpLista').textContent='No pudimos conectar.'});
 }
 function misEnlaces(){
-  hoja('Mis enlaces','<p class="note">Estos son tus enlaces: cada pedido que llegue por ellos queda a tu nombre. Envíaselos solo a tus clientes.</p><div id="meLista" class="empty">Cargando…</div>');
+  hoja('Mis enlaces','<div id="meLista" class="skl" role="status" aria-label="Cargando"><i></i><i></i></div>');
   api('listarEnlaces',{}).then(function(r){
     if(!r||!r.ok){$('#meLista').innerHTML=(r&&r.pinRequerido)?'':'No se pudieron cargar tus enlaces.';return}
     $('#meLista').className='';

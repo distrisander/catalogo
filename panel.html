@@ -701,7 +701,7 @@ function editorPedido(id,items,res){
     +'<div class="mut">'+esc(p.negocio)+' · '+(p.estado==='APROBADO'?'Aprobado: el stock se ajusta solo con lo que cambies.':'Por aprobar: el stock no se mueve hasta aprobarlo.')+'</div>'
     +'<div class="card"><div class="lins">'+it.map(function(l,i){return '<div class="lin" style="grid-template-columns:minmax(0,1fr) auto"><span><b>'+esc(l.nombre)+'</b><small>'+(l.uv==='caja'?'Caja x'+l.pc:'Unidad')+'</small></span><span class="step"><button type="button" data-st="-1" data-i="'+i+'" aria-label="Quitar uno">−</button><input class="qe" data-i="'+i+'" inputmode="numeric" aria-label="Cantidad de '+esc(l.nombre)+'" value="'+l.cantidad+'"><button type="button" data-st="1" data-i="'+i+'" aria-label="Agregar uno">+</button></span></div>'}).join('')+'</div></div>'
     +'<div class="row" style="margin-top:8px"><select id="eAdd" style="flex:1"><option value="">Agregar un producto…</option></select><button class="btn s mini" id="eAddB" type="button">Agregar</button></div>'
-    +'<p class="mut">Pon 0 para quitar un producto. Los que ya estaban conservan su precio; los nuevos usan el precio actual de la lista '+esc(p.lista)+'.</p>'
+    +'<p class="mut">Pon 0 para quitar. Los productos nuevos usan el precio actual de la lista '+esc(p.lista)+'.</p>'
     +'<div class="fld"><label>Motivo del cambio<input id="eMot" maxlength="200" placeholder="Ej. El cliente pidió 5 más"></label></div><div id="eRes">'+(res||'')+'</div>'
     +'<div class="acciones"><button class="btn" id="eVer" type="button">Ver cómo queda</button><button class="btn ok" id="eGuardar" type="button" disabled>Guardar cambios</button></div>';
   modal(h);
@@ -858,7 +858,7 @@ function formVendedor(id){
 }
 function formPin(id){
   var propio=id==='juancarlos'&&S.rol!=='administrador'?'':'';
-  modal('<h2>PIN de '+esc(nombreVend(id))+'</h2><p class="mut">Se lo entregas tú a la persona. Lleva de 4 a 6 números. Al cambiarlo, se cierran sus sesiones anteriores.</p><form class="fld" id="fP"><label>PIN nuevo<input id="pN" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password"></label><label>Repite el PIN<input id="pN2" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password"></label><div id="pE"></div>'
+  modal('<h2>PIN de '+esc(nombreVend(id))+'</h2><p class="mut">De 4 a 6 números. Se cierran sus sesiones anteriores.</p><form class="fld" id="fP"><label>PIN nuevo<input id="pN" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password"></label><label>Repite el PIN<input id="pN2" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password"></label><div id="pE"></div>'
     +'<div class="row"><button class="btn" type="submit">Guardar PIN</button><button class="btn s" type="button" id="no">Cancelar</button></div></form>');
   $('#no').onclick=cerrar;
   $('#fP').onsubmit=function(e){
