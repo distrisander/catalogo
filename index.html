@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#111111">
 <meta name="color-scheme" content="light">
 <!-- Seguridad: la página solo habla con el servidor de Distrisander; fuentes de Google; nada de scripts externos -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="robots" content="noindex, nofollow">
 <meta name="description" content="Catálogo Distrisander Cosméticos: precios de tu lista, stock al día y tu pedido listo en minutos.">
@@ -24,10 +24,11 @@
 <meta name="apple-mobile-web-app-title" content="Distrisander">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <title>Distrisander Cosméticos</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600&display=swap">
+<link rel="preload" href="fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+@font-face{font-family:'Inter';font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/inter-latin.woff2) format('woff2')}
+@font-face{font-family:'Playfair Display';font-style:normal;font-weight:400 900;font-display:swap;src:url(fonts/playfair-latin.woff2) format('woff2')}
+
 /* Negro y dorado, minimalista. Diseño «celular primero»: todo se piensa para un pulgar y una pantalla de 360 px, y luego crece
    (tablet: 3 columnas; escritorio: 4-5 columnas y el pedido se abre en un panel lateral). Fondo cálido para que las fotos resalten. */
 :root{--ink:#111111;--gold:#C9A24B;--gold-d:#7f5c12;--bg:#faf7f1;--card:#ffffff;--line:#ece5d6;--mut:#6d665a;--ok:#2f6b3f;--bad:#a63a2e;
