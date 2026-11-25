@@ -229,8 +229,54 @@ function descuentosHtml(p){
   var d=p.descuentos;if(!d||!d.ahorroTotal)return '';
   var h='<div class="card" style="background:#fbf5e3;border-color:var(--gold)"><b>Para facturar (referencia)</b><div class="mut">El total del pedido no cambia: estos descuentos se aplican al facturar.</div>';
   d.volumen.forEach(function(v){h+='<div class="row" style="margin-top:6px"><span class="g">'+esc(v.nombre)+' · '+v.unidades+' unid. · '+v.pct+' % por volumen</span><b>- '+cop(v.ahorro)+'</b></div>'});
-  if(d.prontoPago)h+='<div class="row" style="margin-top:6px"><span class="g">'+esc(d.prontoPago.marca)+': '+d.prontoPago.pct+' % si paga el mismo día de la entrega, de contado o por transferencia (sobre'+cop(d.prontoPago.base)+')</span><b>- '+cop(d.prontoPago.ahorro)+'</b></div>';
+  if(d.prontoPago)h+='<div class="row" style="margin-top:6px"><span class="g">'+esc(d.prontoPago.marca)+': '+d.prontoPago.pct+' % si paga el mismo día de la entrega, de contado o por transferencia (sobre '+cop(d.prontoPago.base)+')</span><b>- '+cop(d.prontoPago.ahorro)+'</b></div>';
   return h+'<div class="row" style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px"><b class="g">Descuento total de referencia</b><b>- '+cop(d.ahorroTotal)+'</b></div></div>';
+}
+/* ——— Editar un pedido (gerente y administrador) ——— */
+function editorPedido(id,items,res){
+  var p=S.pedidos.filter(function(x){return x.id===id})[0];if(!p)return;
+  var it=items||p.lineas.map(function(l){return {codigo:l.codigo,nombre:l.nombre+(l.tono?' ('+l.tono+')':''),cantidad:l.cantidad,uv:l.unidad_venta,pc:l.por_caja}});
+  var h='<div class="row"><h2 class="g" style="margin:0">Editar '+esc(p.id)+'</h2><button class="btn s mini" id="cerr">Cerrar</button></div>'
+    +'<div class="mut">'+esc(p.negocio)+' · '+(p.estado==='APROBADO'?'Aprobado: el stock se ajusta solo con lo que cambies.':'Por aprobar: el stock no se mueve hasta aprobarlo.')+'</div>'
+    +'<table><thead><tr><th>Producto</th><th class="r">Cantidad</th></tr></thead><tbody>'+it.map(function(l,i){return '<tr><td>'+esc(l.nombre)+'<div class="mut">'+(l.uv==='caja'?'Caja x'+l.pc:'Unidad')+'</div></td><td class="r"><input class="qe" data-i="'+i+'" inputmode="numeric" style="width:80px;text-align:right" value="'+l.cantidad+'"></td></tr>'}).join('')+'</tbody></table>'
+    +'<div class="row" style="margin-top:8px"><select id="eAdd" style="flex:1"><option value="">Agregar un producto…</option></select><button class="btn s mini" id="eAddB" type="button">Agregar</button></div>'
+    +'<p class="mut">Pon 0 para quitar un producto. Los que ya estaban conservan su precio; los nuevos usan el precio actual de la lista '+esc(p.lista)+'.</p>'
+    +'<div class="fld"><label>Motivo del cambio<input id="eMot" maxlength="200" placeholder="Ej. El cliente pidió 5 más"></label></div><div id="eRes">'+(res||'')+'</div>'
+    +'<div class="row" style="margin-top:12px"><button class="btn" id="eVer" type="button">Ver cómo queda</button><button class="btn ok" id="eGuardar" type="button" disabled>Guardar cambios</button></div>';
+  modal(h);
+  $('#cerr').onclick=function(){detallePedido(id)};
+  var leer=function(){document.querySelectorAll('#sheet .qe').forEach(function(e){it[Number(e.dataset.i)].cantidad=aNumero(e.value)||0})};
+  var motivo=function(){return ($('#eMot').value||'').trim()};
+  api('listarProductos',{}).then(function(r){
+    if(!r||!r.ok)return;var ya={};it.forEach(function(l){ya[l.codigo]=1});var sel=$('#eAdd');if(!sel)return;
+    r.productos.filter(function(x){return x.activo&&!ya[x.codigo]&&x.precios&&x.precios[p.lista]>0}).forEach(function(x){
+      var o=document.createElement('option');o.value=x.codigo;o.textContent=x.codigo+' · '+x.nombre+(x.tono_presentacion?' ('+x.tono_presentacion+')':'');o.dataset.n=x.nombre+(x.tono_presentacion?' ('+x.tono_presentacion+')':'');o.dataset.uv=x.unidad_venta;o.dataset.pc=x.unidades_por_caja;sel.appendChild(o)});
+  });
+  $('#eAddB').onclick=function(){
+    var sel=$('#eAdd'),o=sel.options[sel.selectedIndex];if(!o||!o.value)return;
+    leer();it.push({codigo:o.value,nombre:o.dataset.n,cantidad:1,uv:o.dataset.uv,pc:Number(o.dataset.pc)||1});editorPedido(id,it,'');
+  };
+  var llamar=function(modo,forzar){
+    leer();var mot=motivo();
+    if(modo==='aplicar'&&!mot){marcar($('#eMot'));toast('Escribe el motivo');return}
+    var btns=document.querySelectorAll('#sheet .btn');btns.forEach(function(b){b.disabled=true});
+    api('editarPedido',{id:id,items:it.map(function(l){return {codigo:l.codigo,cantidad:l.cantidad}}),modo:modo,motivo:mot,forzar:!!forzar},modo==='aplicar'?nuevaLlave():undefined).then(function(r){
+      btns.forEach(function(b){b.disabled=false});$('#eGuardar').disabled=true;
+      if(r&&r.ok&&r.aplicado){toast(r.message);return cargarPedidos().then(function(){pintarTabs();vistaPedidos();detallePedido(id)})}
+      if(r&&r.ok&&r.sinCambios){$('#eRes').innerHTML='<div class="warn">No hay cambios que guardar.</div>';return}
+      if(r&&r.ok&&r.validado){
+        $('#eRes').innerHTML='<div class="card" style="background:#fbf5e3;border-color:var(--gold)"><b>Así quedaría</b>'+r.cambios.map(function(c){return '<div class="row" style="margin-top:6px"><span class="g">'+esc(c.nombre)+'</span><b>'+c.antes+' → '+c.despues+'</b></div>'}).join('')
+          +'<div class="row" style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px"><span class="g">Total</span><b>'+cop(r.totalAntes)+' → '+cop(r.totalDespues)+'</b></div>'
+          +'<div class="mut" style="margin-top:6px">'+(r.afectaStock?'El stock se ajusta solo por la diferencia.':(p.estado==='APROBADO'?'Este pedido se aprobó antes de la última carga de Factusol: no mueve el stock.':'El stock no se mueve hasta aprobarlo.'))+'</div></div>'
+          +(r.avisos&&r.avisos.length?'<div class="warn">Se guardará con: '+esc(r.avisos.join(', '))+'.</div>':'');
+        $('#eGuardar').disabled=false;$('#eGuardar').onclick=function(){llamar('aplicar',!!forzar)};return}
+      var msg='<div class="err">'+esc((r&&r.message)||'No se pudo revisar')+'</div>';
+      if(r&&r.faltantes)msg+='<div class="warn">'+r.faltantes.map(function(f){return esc(f.nombre)+': pide '+f.pide+', hay '+f.hay}).join('<br>')+'<br>Solo continúa si ya lo confirmaste con bodega.</div><button class="btn bad" id="eForz" type="button" style="margin-top:8px">Continuar de todos modos</button>';
+      else if(r&&r.minimo)msg+='<button class="btn bad" id="eForz" type="button" style="margin-top:8px">Dejarlo por debajo del mínimo</button>';
+      $('#eRes').innerHTML=msg;var f=$('#eForz');if(f)f.onclick=function(){llamar('validar',true)};
+    }).catch(function(){btns.forEach(function(b){b.disabled=false});toast('No pudimos conectar')});
+  };
+  $('#eVer').onclick=function(){llamar('validar',false)};
 }
 function detallePedido(id,extra){
   var p=S.pedidos.filter(function(x){return x.id===id})[0];if(!p)return;
@@ -246,15 +292,16 @@ function detallePedido(id,extra){
   if(S.rol==='gerente'||S.rol==='administrador'){
     if(p.estado==='POR_APROBAR'){
       h+='<div class="fld"><label>Motivo (solo para rechazar)<input id="dMot" maxlength="200" placeholder="Ej. Cliente cambió de idea"></label></div><div class="row" style="margin-top:12px">'
-        +'<button class="btn ok" id="aprob">'+(extra&&extra.faltantes?'Aprobar de todos modos':'Aprobar')+'</button><button class="btn bad" id="rech">Rechazar</button></div>';
+        +'<button class="btn ok" id="aprob">'+(extra&&extra.faltantes?'Aprobar de todos modos':'Aprobar')+'</button><button class="btn bad" id="rech">Rechazar</button></div><div class="row" style="margin-top:10px"><button class="btn s" id="editar">Editar pedido</button></div>';
     }else if(p.estado==='APROBADO'){
-      h+='<div class="row" style="margin-top:12px"><a class="btn" id="wa" style="text-decoration:none" target="_blank" rel="noopener" href="https://wa.me/?text='+encodeURIComponent(textoPedido(p))+'">Compartir a bodega por WhatsApp</a><button class="btn s" id="copPed">Copiar pedido</button></div>'
+      h+='<div class="row" style="margin-top:12px"><a class="btn" id="wa" style="text-decoration:none" target="_blank" rel="noopener" href="https://wa.me/?text='+encodeURIComponent(textoPedido(p))+'">Compartir a bodega por WhatsApp</a><button class="btn s" id="copPed">Copiar pedido</button><button class="btn s" id="editar">Editar pedido</button></div>'
         +'<div class="fld" style="margin-top:14px"><label>Anular y devolver el stock (solo con orden de Juan Carlos y confirmación de bodega)<input id="dMot" maxlength="200" placeholder="Motivo de la anulación"></label></div><button class="btn bad" id="anul" style="margin-top:8px">Anular pedido</button>';
     }
   }
   modal(h);
   $('#cerr').onclick=cerrar;
   var c=$('#copPed');if(c)c.onclick=function(){copiar(textoPedido(p))};
+  var ed=$('#editar');if(ed)ed.onclick=function(){editorPedido(id)};
   var resolver=function(estado,forzar){
     var mot=($('#dMot')||{}).value||'';
     if(estado!=='APROBADO'&&!mot.trim()){marcar($('#dMot'));toast('Escribe el motivo');return}
