@@ -72,6 +72,14 @@ input,select,textarea{border:1.5px solid var(--line);border-radius:12px;padding:
 textarea{min-height:64px;resize:vertical}
 input:focus,select:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px}
 ::placeholder{color:#7a7366;opacity:1}
+.skip{position:absolute;left:12px;top:-60px;background:var(--ink);color:var(--gold);padding:10px 16px;border-radius:99px;z-index:60;text-decoration:none;font-weight:600}.skip:focus{top:8px}
+html{scroll-padding-top:64px}
+@media(pointer:coarse){.chip,.btn.mini{min-height:44px}}
+.big,td.r,th.r,.rcard b{font-variant-numeric:lining-nums tabular-nums}
+.pedido:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.nuevo{animation:resalta 1.6s var(--ease)}
+@keyframes resalta{from{box-shadow:0 0 0 3px var(--gold)}to{box-shadow:0 0 0 0 rgba(201,162,75,0)}}
+@media(prefers-reduced-motion:reduce){.nuevo{animation:none}}
 .mal{border-color:var(--bad)!important}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(max-width:560px){.two{grid-template-columns:1fr}}
@@ -110,13 +118,14 @@ td.r,th.r{text-align:right;white-space:nowrap}
 </style>
 </head>
 <body>
+<a class="skip" href="#app">Saltar al contenido</a>
 <header><div class="wrap top">
   <div class="mark" aria-hidden="true">DS</div>
   <div class="tt"><h1>Panel Distrisander</h1><small id="quien">Acceso con PIN</small></div>
   <div class="sp" id="acc" hidden><button class="btn s mini" id="btnAct" type="button" aria-label="Actualizar"><span aria-hidden="true">↻</span><span class="lbl"> Actualizar</span></button><button class="btn s mini" id="btnSalir" type="button">Salir</button></div>
 </div></header>
-<nav id="nav" hidden><div class="wrap" id="tabs"></div></nav>
-<main class="wrap" id="app"></main>
+<nav id="nav" aria-label="Secciones del panel" hidden><div class="wrap" id="tabs"></div></nav>
+<main class="wrap" id="app" tabindex="-1"></main>
 <div class="ov" id="ov" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
 <div class="toast" id="toast" role="status"></div>
 
@@ -159,7 +168,7 @@ function cerrar(){$('#ov').hidden=true;document.body.style.overflow='';if(FOCO&&
 $('#ov').addEventListener('click',function(e){if(e.target.id==='ov')cerrar()});
 document.addEventListener('keydown',function(e){if(e.key==='Escape')cerrar()});
 function copiar(txt){return (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(function(){toast('Copiado')},function(){window.prompt('Copia el texto:',txt)})}
-function marcar(el){if(!el)return;el.classList.add('mal');el.focus();el.addEventListener('input',function f(){el.classList.remove('mal');el.removeEventListener('input',f)})}
+function marcar(el){if(!el)return;el.classList.add('mal');el.setAttribute('aria-invalid','true');el.focus();el.addEventListener('input',function f(){el.classList.remove('mal');el.removeAttribute('aria-invalid');el.removeEventListener('input',f)})}
 
 /* ——— Acceso ——— */
 function guardarSesion(r){S.token=r.token;S.usuario=r.usuario;S.rol=r.rol;try{localStorage.setItem('ds_panel',JSON.stringify({token:r.token,usuario:r.usuario,rol:r.rol}))}catch(e){}}
@@ -205,7 +214,7 @@ function salir(){api('cerrarSesion',{}).catch(function(){});S.token='';try{local
 /* ——— Estructura ——— */
 function arrancar(){
   $('#acc').hidden=false;$('#nav').hidden=false;$('#quien').textContent=(S.usuario==='kevin'?'Kevin':S.usuario==='juancarlos'?'Juan Carlos':S.usuario)+' · '+(ROLES[S.rol]||S.rol);
-  Promise.all([cargarVendedores(),cargarPedidos()]).then(function(){pintarTabs();vista()});
+  Promise.all([cargarVendedores(),cargarPedidos()]).then(function(){VISTOS=pendientes();pintarTabs();vista()});
   pintarTabs();vista();
 }
 function pintarTabs(){
@@ -214,11 +223,12 @@ function pintarTabs(){
   var t=[['pedidos','Pedidos'+(n?'<span class="n">'+n+'</span>':'')],['productos','Productos']];
   if(S.rol==='administrador')t.push(['stock','Stock']);
   t.push(['reportes','Reportes'],['enlaces','Enlaces'],['vendedores','Vendedores'],['marcas','Marcas y banners'],['ajustes','Ajustes']);
-  $('#tabs').innerHTML=t.map(function(x){return '<button data-t="'+x[0]+'" class="'+(S.tab===x[0]?'on':'')+'">'+x[1]+'</button>'}).join('');
+  $('#tabs').innerHTML=t.map(function(x){return '<button data-t="'+x[0]+'" class="'+(S.tab===x[0]?'on':'')+'"'+(S.tab===x[0]?' aria-current="page"':'')+'>'+x[1]+'</button>'}).join('');
+  document.title=(n?'('+n+') ':'')+'Panel Distrisander';      // la pestaña del navegador avisa cuántos pedidos esperan
   var on=document.querySelector('#tabs .on'),nav=$('#nav');
   if(on&&nav&&nav.scrollWidth>nav.clientWidth)nav.scrollTo({left:Math.max(0,on.offsetLeft-24),behavior:'smooth'});   // la pestaña activa siempre se ve
 }
-$('#tabs').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;S.tab=b.dataset.t;pintarTabs();vista()});
+$('#tabs').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;S.tab=b.dataset.t;pintarTabs();vista();window.scrollTo(0,0)});
 $('#btnAct').addEventListener('click',function(){toast('Actualizando…');Promise.all([cargarVendedores(),cargarPedidos()]).then(function(){pintarTabs();vista();toast('Listo')})});
 $('#btnSalir').addEventListener('click',salir);
 function vista(){
@@ -809,7 +819,30 @@ function formMarca(nombre){
 }
 
 /* ——— Inicio ——— */
-setInterval(function(){if(S.token&&document.visibilityState==='visible'&&S.tab==='pedidos'&&$('#ov').hidden){cargarPedidos().then(function(){pintarTabs();vistaPedidos()})}},45000);
+/* Actualización automática: cada 45 s y al volver a la pestaña. Avisa cuando llega un pedido nuevo por aprobar (en cualquier sección). */
+var VISTOS=null;
+function pendientes(){var o={};S.pedidos.forEach(function(p){if(p.estado==='POR_APROBAR')o[p.id]=p});return o}
+function refrescarPedidos(){
+  if(!S.token||document.visibilityState!=='visible'||!$('#ov').hidden)return;
+  var antes=VISTOS||pendientes();
+  cargarPedidos().then(function(){
+    var ahora=pendientes(),nuevos=Object.keys(ahora).filter(function(id){return !antes[id]});
+    VISTOS=ahora;pintarTabs();
+    if(S.tab==='pedidos'&&$('#ov').hidden)vistaPedidos();
+    if(nuevos.length){
+      toast(nuevos.length===1?'Llegó un pedido nuevo: '+ahora[nuevos[0]].negocio:'Llegaron '+nuevos.length+' pedidos nuevos');
+      setTimeout(function(){nuevos.forEach(function(id){var el=document.querySelector('.pedido[data-id="'+id+'"]');if(el)el.classList.add('nuevo')})},60);
+    }
+  }).catch(function(){});
+}
+setInterval(refrescarPedidos,45000);
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')refrescarPedidos()});
+/* Accesibilidad: las tarjetas que se tocan funcionan con teclado y los avisos de error se anuncian */
+new MutationObserver(function(){
+  document.querySelectorAll('#app .pedido:not([tabindex])').forEach(function(el){el.setAttribute('tabindex','0');el.setAttribute('role','button')});
+  document.querySelectorAll('.err:not([role]),.warn:not([role])').forEach(function(el){el.setAttribute('role',el.classList.contains('err')?'alert':'status')});
+}).observe(document.body,{childList:true,subtree:true});
+$('#app').addEventListener('keydown',function(e){var el=e.target.closest&&e.target.closest('.pedido');if(el&&el===e.target&&(e.key==='Enter'||e.key===' ')){e.preventDefault();el.click()}});
 if(S.token){api('miSesion',{}).then(function(r){if(r&&r.ok){S.rol=r.rol;S.usuario=r.usuario;arrancar()}else vistaLogin()}).catch(function(){vistaLogin('No pudimos conectar. Intenta de nuevo.')})}
 else{api('estadoInstalacion',{}).then(function(r){if(r&&r.ok&&!r.adminConfigurado)vistaPrimera();else vistaLogin()}).catch(function(){vistaLogin()})}
 })();
