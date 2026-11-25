@@ -442,6 +442,26 @@ input[type=file]::file-selector-button{border:0;border-radius:99px;background:li
   .im-pie{margin-top:18px;font-size:8.5pt;color:#555;text-align:center}
   .im-t tr{break-inside:avoid}
 }
+.prev{white-space:pre-wrap;word-break:break-word;background:#fff;border:1px solid var(--line2);border-radius:14px;padding:12px 14px;font:.875rem/1.5 inherit;max-height:46vh;overflow:auto;margin:8px 0}
+/* Precios por lista */
+.formas{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin:6px 0 14px}
+.forma{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px}.forma b{display:block;font:600 1rem var(--disp);margin-bottom:2px}.forma span{color:var(--mut);font-size:.8125rem;line-height:1.4}
+.opt{border:1.5px solid var(--line2);border-radius:16px;background:#fff;padding:12px 14px;margin-top:10px;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.opt[aria-checked=true]{border-color:var(--gold-d);box-shadow:0 0 0 2px rgba(201,162,75,.4);background:#fffaf0}.opt b{display:block}.opt .mut{margin-top:2px}
+.opt .campos{margin-top:10px;cursor:auto}
+.pfila{display:grid;grid-template-columns:minmax(0,1fr) 120px;gap:8px 10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.pfila.cambio{background:#fffaf0;margin:0 -8px;padding-inline:8px;border-radius:10px}.pfila input{min-height:44px;text-align:right}.pfila small{display:block;color:var(--mut)}
+.pfila .fij{display:inline-block;background:#fdeed0;color:#6b4a00;border-radius:99px;font-size:.6875rem;font-weight:700;padding:1px 8px;margin-left:6px}
+/* Selector de ciudades de las zonas */
+.chipsc{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.chipc{display:inline-flex;align-items:center;gap:2px;background:#fff;border:1px solid var(--line2);border-radius:99px;padding:2px 4px 2px 12px;font-size:.8125rem;font-weight:600}
+.chipc button{width:28px;height:28px;border-radius:50%;border:0;background:transparent;font-size:1.125rem;line-height:1;color:var(--mut)}
+.chipc button:hover{background:var(--line);color:var(--ink)}
+.pick{border:1px solid var(--line2);border-radius:14px;background:#fff;padding:10px;margin-top:8px}
+#zLista{max-height:260px;overflow:auto;margin-top:8px;border-top:1px solid var(--line);padding-top:4px}
+.zg{position:sticky;top:0;background:#fff;font:700 .75rem var(--sans,inherit);letter-spacing:.08em;text-transform:uppercase;color:var(--mut);padding:8px 2px 4px}
+.mu{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 4px;border-radius:10px;cursor:pointer}
+.mu:hover{background:var(--bg)}.mu input{width:20px;height:20px;flex:none}.mu.off{color:var(--mut);cursor:not-allowed}.mu small{margin-left:auto;color:var(--mut);font-size:.75rem}
 /* Recorrido guiado y ayuda */
 .tour{position:fixed;inset:0;z-index:80}
 .tour-hole{position:fixed;border-radius:14px;box-shadow:0 0 0 9999px rgba(17,17,17,.62);outline:2px solid #f1d78e;pointer-events:none;transition:top .3s var(--ease),left .3s var(--ease),width .3s var(--ease),height .3s var(--ease)}
@@ -503,6 +523,7 @@ input[type=file]::file-selector-button{border:0;border-radius:99px;background:li
 <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
 <symbol id="i-share" viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="m8.2 10.8 7.6-3.6M8.2 13.2l7.6 3.6"/></symbol>
 <symbol id="i-buscar" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></symbol>
+<symbol id="i-precios" viewBox="0 0 24 24"><path d="M3 12V4h8l9 9-8 8z"/><circle cx="7.5" cy="8.5" r="1.3"/></symbol>
 <symbol id="i-print" viewBox="0 0 24 24"><path d="M7 9V4h10v5"/><rect x="4" y="9" width="16" height="8" rx="2"/><path d="M8 14h8v6H8z"/></symbol>
 </defs></svg>
 <div class="shell">
@@ -682,10 +703,10 @@ function salir(){api('cerrarSesion',{}).catch(function(){});S.token='';S.product
 
 /* ——— Estructura ——— */
 var MENU=[['pedidos','Pedidos','i-pedidos','Aprueba y sigue cada pedido','op'],['productos','Productos','i-productos','Catálogo, precios y existencias','op'],['stock','Stock','i-stock','Carga semanal y restock','op','admin'],
-  ['reportes','Reportes','i-reportes','Ventas por período, asesor y zona','an'],['enlaces','Enlaces','i-enlaces','Un enlace por asesor y lista','cf'],['vendedores','Vendedores','i-vendedores','Asesores y su acceso','cf'],
+  ['reportes','Reportes','i-reportes','Ventas por período, asesor y zona','an'],['precios','Precios','i-precios','Listado, margen o personalizado','cf'],['enlaces','Enlaces','i-enlaces','Un enlace por asesor y lista','cf'],['vendedores','Vendedores','i-vendedores','Asesores y su acceso','cf'],
   ['marcas','Marcas y banners','i-marcas','Portada y marcas del catálogo','cf'],['ajustes','Ajustes','i-ajustes','Mínimo, descuentos, respaldo y PIN','cf']];
 var GRUPOS={op:'Operación',an:'Análisis',cf:'Configuración'};
-var SUBS={pedidos:'Aprueba, rechaza y sigue cada pedido que llega por los enlaces.',productos:'Catálogo, precios por lista y existencias.',stock:'Carga semanal de Factusol y restock de mercancía nueva.',reportes:'Ventas aprobadas por período, asesor, zona y producto.',enlaces:'Un enlace por asesor y lista de precios.',vendedores:'Asesores, su WhatsApp y su acceso.',marcas:'Banners de la portada y marcas del catálogo.',ajustes:'Pedido mínimo, descuentos, respaldo y tu PIN.'};
+var SUBS={pedidos:'Aprueba, rechaza y sigue cada pedido que llega por los enlaces.',productos:'Catálogo, precios por lista y existencias.',stock:'Carga semanal de Factusol y restock de mercancía nueva.',reportes:'Ventas aprobadas por período, asesor, zona y producto.',precios:'Cómo se arma el precio de cada lista: por listado, por margen o personalizado.',enlaces:'Un enlace por asesor y lista de precios.',vendedores:'Asesores, su WhatsApp y su acceso.',marcas:'Banners de la portada y marcas del catálogo.',ajustes:'Pedido mínimo, descuentos, respaldo y tu PIN.'};
 function iconoSvg(id){return '<svg class="ic" aria-hidden="true"><use href="#'+id+'"/></svg>'}
 function arrancar(){
   document.body.classList.remove('sin-sesion');
@@ -718,13 +739,17 @@ function pintarTabs(){
   document.title=(n?'('+n+') ':'')+'Panel Distrisander';      // la pestaña del navegador avisa cuántos pedidos esperan
 }
 function animarVista(){var a=$('#app');a.classList.add('anim');clearTimeout(a._t);a._t=setTimeout(function(){a.classList.remove('anim')},1000)}
-var VERSION_PANEL='2026.11.11',SERVIDOR_MIN='2026.11.10';
+var VERSION_PANEL='2026.11.12',SERVIDOR_MIN='2026.11.12';
 /* Historial de cambios: cada entrega agrega aquí su entrada (la más nueva primero). Tipos: nuevo · mejora · arreglo */
 var CAMBIOS=[
- {v:'2026.11.11',f:'25 de noviembre de 2026',t:'Zonas y listas de precios',items:[
-  ['nuevo','Ajustes → Zonas y listas: ponle nombre a cada lista («Zona 1») y escribe las ciudades que cubre.'],
-  ['nuevo','Ajustar los precios de una lista por porcentaje, con vista previa antes de aplicar.'],
-  ['mejora','El nombre de cada zona se ve en enlaces, productos, reportes y en el modo asesor del catálogo.'],
+ {v:'2026.11.12',f:'25 de noviembre de 2026',t:'Zonas, tres formas de precio, metas y pedido más completo',items:[
+  ['nuevo','Zonas: nombre propio para cada lista y ciudades y pueblos elegidos de la lista oficial (Santander, Norte de Santander, Arauca, Cesar, Boyacá y Antioquia). Una ciudad solo puede estar en una zona.'],
+  ['nuevo','Precios: cada lista puede manejarse por listado, por margen (con el costo de cada producto) o con precios personalizados que no se tocan al recalcular.'],
+  ['nuevo','Subir o bajar todos los precios de una lista por porcentaje, con vista previa.'],
+  ['nuevo','Meta mensual para cada vendedor, con su avance en Reportes.'],
+  ['nuevo','Enviar por WhatsApp el perfil de cada vendedor: sus zonas, listas de precios y enlaces (nunca el PIN).'],
+  ['nuevo','Catálogo: el pedido pide nombre del cliente y del negocio, cédula o NIT y celular de 10 dígitos obligatorios; pago de contado (efectivo o transferencia) o a crédito 30 días; y «quién recibe» con botones.'],
+  ['nuevo','Catálogo del asesor: botón de Estadísticas (ventas, avance de la meta, clientes y productos), Actualizar, e Instalar disponible solo después de entrar. La sesión se mantiene abierta.'],
   ['mejora','Una sola forma de actualizar: la píldora de estado (se quitaron los botones repetidos).']]},
  {v:'2026.11.10',f:'25 de noviembre de 2026',t:'Avisos, buscador y reportes comparativos',items:[
   ['nuevo','Buscador general: Ctrl + K (o la lupa) encuentra pedidos, productos y vendedores, y salta a cualquier sección.'],
@@ -819,7 +844,7 @@ document.addEventListener('click',function(e){
 });
 function vista(){
   if(!S.token)return;
-  ({pedidos:vistaPedidos,productos:vistaProductos,reportes:vistaReportes,marcas:vistaMarcas,enlaces:vistaEnlaces,vendedores:vistaVendedores,ajustes:vistaAjustes,stock:vistaStock})[S.tab]();
+  ({pedidos:vistaPedidos,productos:vistaProductos,reportes:vistaReportes,precios:vistaPrecios,marcas:vistaMarcas,enlaces:vistaEnlaces,vendedores:vistaVendedores,ajustes:vistaAjustes,stock:vistaStock})[S.tab]();
 }
 function nombreVend(id){if(id==='detal')return 'Detal';var v=S.vendedores.filter(function(x){return x.id===id})[0];return v?v.nombre:id}
 
@@ -967,7 +992,7 @@ document.addEventListener('click',function(e){
   else if(e.target.closest('#selCancelar')){S.selMode=false;S.sel={};if(S.tab==='pedidos')vistaPedidos();else pintarSel()}
 });
 function textoPedido(p){
-  var t='*PEDIDO DISTRISANDER* '+p.id+'\nAsesor: '+nombreVend(p.vendedor)+' · lista '+p.lista+'\n\n*Cliente*\nNegocio: '+p.negocio+'\nRecibe: '+p.recibe+'\nCédula/NIT: '+p.cedula_nit+'\nTeléfono: '+p.telefono+'\nDirección: '+p.direccion+'\nCiudad/barrio: '+p.ciudad_barrio+'\nForma de pago: '+p.forma_pago+'\n';
+  var t='*PEDIDO DISTRISANDER* '+p.id+'\nAsesor: '+nombreVend(p.vendedor)+' · lista '+p.lista+'\n\n*Cliente*\n'+(p.cliente?'Nombre: '+p.cliente+'\n':'')+'Negocio: '+p.negocio+'\nAtiende/recibe: '+p.recibe+'\nCédula/NIT: '+p.cedula_nit+'\nTeléfono: '+p.telefono+'\nDirección: '+p.direccion+'\nCiudad/barrio: '+p.ciudad_barrio+'\nForma de pago: '+p.forma_pago+'\n';
   if(p.observaciones)t+='Observaciones: '+p.observaciones+'\n';
   t+='\n*Productos*\n';
   p.lineas.forEach(function(l){t+='• '+l.cantidad+' × '+l.nombre+(l.tono?' ('+l.tono+')':'')+' · '+(l.unidad_venta==='caja'?'Caja x'+l.por_caja+' = '+l.unidades+' unid.':'Unidad')+' · '+cop(l.precio)+' = '+cop(l.subtotal)+'\n'});
@@ -1036,7 +1061,7 @@ function imprimirPedido(id){
   }).join('');
   var f=fechaDe(p.fecha);
   $('#impresion').innerHTML='<div class="im-cab"><div class="im-marca"><span class="im-mark">DS</span><div><b>Distrisander Cosméticos</b><small>Hoja de alistamiento · Bodega</small></div></div><div class="im-num"><small>Pedido</small><b>'+esc(p.id)+'</b><small>'+(f?f.toLocaleDateString('es-CO',{day:'numeric',month:'long',year:'numeric'}):esc(p.fecha))+'</small></div></div>'
-    +'<div class="im-grid"><div><small>Cliente</small><b>'+esc(p.negocio)+'</b><div>'+esc(p.recibe)+' · '+esc(p.cedula_nit)+'</div></div>'
+    +'<div class="im-grid"><div><small>Cliente</small><b>'+esc(p.negocio)+'</b><div>'+(p.cliente?esc(p.cliente)+' · ':'')+'Recibe: '+esc(p.recibe)+' · '+esc(p.cedula_nit)+'</div></div>'
     +'<div><small>Entrega</small><b>'+esc(p.direccion)+'</b><div>'+esc(p.ciudad_barrio)+' · Tel. '+esc(p.telefono)+'</div></div>'
     +'<div><small>Asesor</small><b>'+esc(nombreVend(p.vendedor))+'</b><div>Lista '+esc(p.lista)+'</div></div>'
     +'<div><small>Estado</small><b>'+esc(p.estado.replace('_',' ').toLowerCase())+'</b><div>Pago: '+esc(p.forma_pago)+'</div></div></div>'
@@ -1053,7 +1078,8 @@ function detallePedido(id,extra){
   var h='<div class="row"><h2 class="g" style="margin:0">'+esc(p.negocio)+'</h2><button class="btn s mini" id="cerr" type="button">Cerrar</button></div>'
     +'<div class="estado-linea" style="margin-top:2px"><span class="pill p-'+esc(p.estado)+'">'+esc(p.estado.replace('_',' ').toLowerCase())+'</span><span class="mut">'+esc(p.id)+' · '+cuando(p.fecha)+'</span></div>'
     +'<div class="card"><div class="info">'
-      +infoFila('i-user','Recibe',esc(p.recibe)+' <span class="mut" style="font-weight:500">· '+esc(p.cedula_nit)+'</span>')
+      +(p.cliente?infoFila('i-user','Cliente',esc(p.cliente)):'')
+      +infoFila('i-user','Atiende o recibe',esc(p.recibe)+' <span class="mut" style="font-weight:500">· '+esc(p.cedula_nit)+'</span>')
       +infoFila('i-phone','Teléfono','<a href="tel:'+esc(p.telefono)+'">'+esc(p.telefono)+'</a>')
       +infoFila('i-pin','Entrega',esc(p.direccion)+' <span class="mut" style="font-weight:500">· '+esc(p.ciudad_barrio)+'</span>')
       +infoFila('i-card','Forma de pago',esc(p.forma_pago))
@@ -1143,26 +1169,65 @@ function vistaVendedores(){
         +(v.whatsapp?'<span class="chipinfo o">'+iconoSvg('i-phone')+esc(v.whatsapp)+'</span>':'<span class="chipinfo m">'+iconoSvg('i-phone')+'Falta WhatsApp</span>')
         +(v.tienePin?'<span class="chipinfo o">'+iconoSvg('i-lock')+'Tiene PIN</span>':'<span class="chipinfo m">'+iconoSvg('i-lock')+'Sin PIN</span>')
         +(v.zona?'<span class="chipinfo">'+iconoSvg('i-pin')+esc(v.zona)+'</span>':'')
+        +(v.meta?'<span class="chipinfo o">'+iconoSvg('i-percent')+'Meta '+cop(v.meta)+'</span>':'<span class="chipinfo m">'+iconoSvg('i-percent')+'Sin meta</span>')
         +(v.activo?'':'<span class="chipinfo m">Inactivo</span>')+'</div></div>'
-        +'<div class="acc"><button class="btn s mini" type="button" data-a="ed" data-id="'+esc(v.id)+'">'+iconoSvg('i-edit')+'Editar</button><button class="btn s mini" type="button" data-a="pin" data-id="'+esc(v.id)+'">'+iconoSvg('i-key')+(v.tienePin?'Cambiar PIN':'Poner PIN')+'</button></div></div>'}).join('');
+        +'<div class="acc"><button class="btn s mini" type="button" data-a="ed" data-id="'+esc(v.id)+'">'+iconoSvg('i-edit')+'Editar</button><button class="btn s mini" type="button" data-a="pin" data-id="'+esc(v.id)+'">'+iconoSvg('i-key')+(v.tienePin?'Cambiar PIN':'Poner PIN')+'</button><button class="btn s mini" type="button" data-a="wa" data-id="'+esc(v.id)+'">'+iconoSvg('i-chat')+'Enviar su perfil</button></div></div>'}).join('');
     $('#app').innerHTML=h;
-    $('#app').onclick=function(e){var b=e.target.closest('button');if(!b)return;if(b.id==='nuevoV')return formVendedor();if(b.dataset.a==='ed')return formVendedor(b.dataset.id);if(b.dataset.a==='pin')return formPin(b.dataset.id)};
+    $('#app').onclick=function(e){var b=e.target.closest('button');if(!b)return;if(b.id==='nuevoV')return formVendedor();if(b.dataset.a==='ed')return formVendedor(b.dataset.id);if(b.dataset.a==='pin')return formPin(b.dataset.id);if(b.dataset.a==='wa')return perfilVendedor(b.dataset.id)};
   });
 }
 function formVendedor(id){
-  var v=id?S.vendedores.filter(function(x){return x.id===id})[0]:{id:'',nombre:'',whatsapp:'',zona:'',activo:true};
+  var v=id?S.vendedores.filter(function(x){return x.id===id})[0]:{id:'',nombre:'',whatsapp:'',zona:'',activo:true,meta:0};
   modal('<h2>'+(id?'Editar vendedor':'Nuevo vendedor')+'</h2><form class="fld" id="fV"><label>Código (3 a 20 letras o números, sin espacios)<input id="vId" value="'+esc(v.id)+'" '+(id?'readonly':'')+' maxlength="20" autocapitalize="off"></label>'
     +'<label>Nombre<input id="vNom" value="'+esc(v.nombre)+'" maxlength="60"></label><label>WhatsApp (10 dígitos)<input id="vWa" value="'+esc(v.whatsapp)+'" inputmode="numeric" maxlength="12" placeholder="3001234567"></label>'
-    +'<label>Zona<input id="vZona" value="'+esc(v.zona)+'" maxlength="200"></label><label><span>Estado</span><select id="vAct"><option value="1"'+(v.activo?' selected':'')+'>Activo</option><option value="0"'+(v.activo?'':' selected')+'>Inactivo (su enlace y su PIN dejan de servir)</option></select></label>'
+    +'<label>Zona (nota)<input id="vZona" value="'+esc(v.zona)+'" maxlength="200"></label><label>Meta mensual de ventas (COP)<input id="vMeta" value="'+(v.meta||'')+'" inputmode="numeric" maxlength="12" placeholder="Ej. 20000000 (vacío = sin meta)"></label><label><span>Estado</span><select id="vAct"><option value="1"'+(v.activo?' selected':'')+'>Activo</option><option value="0"'+(v.activo?'':' selected')+'>Inactivo (su enlace y su PIN dejan de servir)</option></select></label>'
     +'<div id="vErr"></div><div class="row"><button class="btn" type="submit">Guardar</button><button class="btn s" type="button" id="no">Cancelar</button></div></form>');
   $('#no').onclick=cerrar;
   $('#fV').onsubmit=function(e){
     e.preventDefault();
     api('guardarVendedor',{id:$('#vId').value.trim().toLowerCase(),nombre:$('#vNom').value,whatsapp:$('#vWa').value,zona:$('#vZona').value,activo:$('#vAct').value==='1',crear:!id},nuevaLlave()).then(function(r){
       if(!r||!r.ok){var m={id:'#vId',nombre:'#vNom',whatsapp:'#vWa'}[r&&r.campo];if(m)marcar($(m));$('#vErr').innerHTML='<div class="err">'+esc((r&&r.message)||'No se pudo guardar')+'</div>';return}
-      cerrar();toast(r.message);vistaVendedores();
+      var elId=$('#vId').value.trim().toLowerCase(),meta=Math.floor(Number(String($('#vMeta').value).replace(/[^0-9]/g,''))||0),msg=r.message;
+      if(meta===(v.meta||0)){cerrar();toast(msg);vistaVendedores();return}
+      return api('guardarMeta',{vendedor:elId,meta:meta},nuevaLlave()).then(function(m){
+        if(!m||!m.ok){$('#vErr').innerHTML='<div class="err">El vendedor se guardó, pero la meta no: '+esc((m&&m.message)||'error')+'</div>';return}
+        cerrar();toast(msg+' '+m.message);vistaVendedores();
+      });
     }).catch(function(){$('#vErr').innerHTML='<div class="err">No pudimos conectar.</div>'});
   };
+}
+/* Perfil del vendedor por WhatsApp: su meta, sus zonas (ciudades y pueblos), sus listas de precios y sus enlaces. Nunca incluye el PIN. */
+function textoPerfil(v,enl){
+  var t='*Hola '+v.nombre.split(' ')[0]+'!* Este es tu perfil en el catálogo de Distrisander.\n\n';
+  t+='*Meta del mes:* '+(v.meta?cop(v.meta):'aún sin meta')+'\n\n*Tus zonas, precios y enlaces*\n';
+  if(!enl.length)t+='Todavía no tienes enlaces activos. Te avisamos cuando estén listos.\n';
+  enl.forEach(function(e){
+    var z=ZONAS[e.lista]||{nombre:LISTAS[e.lista],ciudades:[],pueblos:[]};
+    t+='\n• *'+z.nombre+'* (lista '+e.lista+')\n';
+    if(e.lista==='5'||Number(e.lista)===5)t+='  Cubre: todas las ciudades (Detal)\n';
+    else{
+      if((z.ciudades||[]).length)t+='  Ciudades: '+z.ciudades.join(', ')+'\n';
+      if((z.pueblos||[]).length)t+='  Pueblos: '+z.pueblos.join(', ')+'\n';
+      if(!(z.ciudades||[]).length&&!(z.pueblos||[]).length)t+='  Ciudades: por definir\n';
+    }
+    t+='  Precios: lista «'+z.nombre+'» (los ves al abrir tu enlace)\n  Tu enlace: '+urlEnlace(e.clave)+'\n';
+  });
+  t+='\nEntras como asesor con tu código *'+v.id+'* y tu PIN (el PIN no se envía por aquí). Guarda el enlace en tu pantalla de inicio para tenerlo siempre a la mano.';
+  return t;
+}
+function perfilVendedor(id){
+  var v=S.vendedores.filter(function(x){return x.id===id})[0];if(!v)return;
+  modal('<div class="row"><h2 class="g" style="margin:0">Perfil de '+esc(v.nombre)+'</h2><button class="btn s mini" id="cerrX" type="button">Cerrar</button></div><div class="skl" role="status" aria-label="Cargando"><i></i><i></i></div>');
+  Promise.all([cargarEnlaces(),cargarZonas()]).then(function(){
+    var enl=S.enlaces.filter(function(e){return e.vendedor===id&&e.activo}).sort(function(a,b){return a.lista-b.lista}),t=textoPerfil(v,enl);
+    var url=v.whatsapp?'https://wa.me/57'+String(v.whatsapp).replace(/\D/g,'').replace(/^57/,'')+'?text='+encodeURIComponent(t):'';
+    modal('<div class="row"><h2 class="g" style="margin:0">Perfil de '+esc(v.nombre)+'</h2><button class="btn s mini" id="cerrX" type="button">Cerrar</button></div>'
+      +'<p class="mut">Así le llegará a '+esc(v.nombre)+(v.whatsapp?' ('+esc(v.whatsapp)+')':'')+'. Revísalo antes de enviar.</p>'
+      +'<pre class="prev" id="perfilTx">'+esc(t)+'</pre>'
+      +(v.whatsapp?'':'<div class="warn">Este vendedor no tiene WhatsApp. Agrégalo en «Editar» para poder enviárselo.</div>')
+      +'<div class="acciones">'+(v.whatsapp?'<a class="btn ok" id="perfilWa" target="_blank" rel="noopener" href="'+esc(url)+'">'+iconoSvg('i-share')+'Enviar por WhatsApp</a>':'')+'<button class="btn s" id="perfilCop" type="button">'+iconoSvg('i-copy')+'Copiar mensaje</button></div>');
+    $('#perfilCop').onclick=function(){copiar(t)};
+  }).catch(function(){$('#sheet').insertAdjacentHTML('beforeend','<div class="err">No pudimos cargar los datos.</div>')});
 }
 function formPin(id){
   var propio=id==='juancarlos'&&S.rol!=='administrador'?'':'';
@@ -1177,18 +1242,215 @@ function formPin(id){
   };
 }
 
+/* ——— Precios por lista: listado, margen o personalizado ——— */
+var PRC={modos:{},fijados:{},productos:0,conCosto:0,sinCosto:0};
+function textoModo(m){return m.modo==='margen'?'Por margen · '+m.margen+' % sobre '+(m.base==='venta'?'el precio de venta':'el costo')+' · redondeo a '+m.redondeo:'Por listado'}
+function vistaPrecios(){
+  $('#app').innerHTML='<h2>Precios por lista</h2><div class="skl" role="status" aria-label="Cargando"><i></i><i></i><i></i></div>';
+  Promise.all([api('leerPrecios',{}),cargarZonas()]).then(function(a){
+    var r=a[0];if(!r||!r.ok){$('#app').innerHTML='<div class="err">'+esc((r&&r.message)||'No se pudieron leer los precios.')+'</div>';return}
+    PRC=r;pintarPrecios();
+  }).catch(function(){$('#app').innerHTML='<div class="err">No pudimos conectar.</div>'});
+}
+function pintarPrecios(){
+  var h='<h2>Precios por lista</h2><p class="sub">Cada lista se maneja de la forma que prefieras. Puedes combinarlas: unas por listado y otras por margen.</p>'
+    +'<div class="formas"><div class="forma"><b>1 · Listado</b><span>Los precios los trae Juan Carlos (Excel) o se escriben uno por uno.</span></div>'
+    +'<div class="forma"><b>2 · Por margen</b><span>Cargas el costo de cada producto y el precio se calcula solo con tu margen.</span></div>'
+    +'<div class="forma"><b>3 · Personalizado</b><span>Cambias uno o varios precios de una lista sin tocar el resto.</span></div></div>';
+  [1,2,3,4,5].forEach(function(l){
+    var m=PRC.modos[l]||{modo:'listado'},z=ZONAS[l]||{nombre:LISTAS[l]},fj=PRC.fijados[l]||0;
+    h+='<div class="card"><div class="row"><span class="g"><b>Lista '+l+' · '+esc(z.nombre)+'</b><div class="mut">'+esc(textoModo(m))+(fj?' · '+fj+(fj===1?' precio personalizado':' precios personalizados'):'')+'</div></span><span class="pill '+(m.modo==='margen'?'o':'n')+'">'+(m.modo==='margen'?'margen':'listado')+'</span></div>'
+      +'<div class="acc" style="margin-top:10px"><button class="btn mini" type="button" data-a="forma" data-l="'+l+'">Cambiar forma</button><button class="btn s mini" type="button" data-a="pers" data-l="'+l+'">Precios personalizados</button><button class="btn s mini" type="button" data-a="pct" data-l="'+l+'">Subir o bajar %</button></div></div>';
+  });
+  h+='<div class="card"><b>Costos de los productos</b><div class="mut">'+PRC.conCosto+' de '+PRC.productos+' productos activos tienen costo'+(PRC.sinCosto?' ('+PRC.sinCosto+' sin costo: no se calculan por margen).':'.')+'</div>'
+    +'<div class="acc" style="margin-top:10px"><button class="btn s mini" type="button" id="costosBtn">Cargar costos desde Excel</button></div><p class="mut" style="margin:8px 0 0">También puedes poner el costo de un producto en Productos → Editar.</p></div>';
+  $('#app').innerHTML=h;
+  $('#app').onclick=function(e){
+    var b=e.target.closest('button');if(!b)return;
+    if(b.id==='costosBtn')return importarCostos();
+    var l=Number(b.dataset.l);
+    if(b.dataset.a==='forma')return formaPrecios(l);
+    if(b.dataset.a==='pers')return editorPrecios(l);
+    if(b.dataset.a==='pct')return ajustarPrecios(l);
+  };
+}
+function formaPrecios(l){
+  var z=ZONAS[l]||{nombre:LISTAS[l]},m=PRC.modos[l]||{modo:'listado',base:'costo',margen:0,redondeo:100},F={modo:m.modo,base:m.base||'costo',margen:m.margen||'',redondeo:m.redondeo||100};
+  modal('<div class="row"><h2 class="g" style="margin:0">Forma de precios</h2><button class="btn s mini" id="cerrX" type="button">Cerrar</button></div><p class="mut">Lista '+l+' · <b>'+esc(z.nombre)+'</b>. Elige cómo se arman sus precios.</p>'
+    +'<div id="fOpts"></div><div id="fRes" aria-live="polite"></div><div class="acciones"><button class="btn" id="fVer" type="button">Ver cómo quedaría</button><button class="btn ok" id="fAp" type="button" hidden>Aplicar</button><button class="btn s" id="fNo" type="button">Cancelar</button></div>');
+  $('#fNo').onclick=cerrar;
+  var reset=function(){$('#fAp').hidden=true;$('#fRes').innerHTML=''};
+  var pintar=function(){
+    var mg=F.modo==='margen';
+    $('#fOpts').innerHTML='<div class="opt" role="radio" tabindex="0" aria-checked="'+(F.modo==='listado')+'" data-m="listado"><b>1 · Listado de Juan Carlos</b><span class="mut">Los precios los trae Juan Carlos o los escribes tú. No se calcula nada.</span>'
+        +(F.modo==='listado'?'<div class="mut" style="margin-top:6px">Para cargar un listado nuevo: Productos → «Importar Excel».</div>':'')+'</div>'
+      +'<div class="opt" role="radio" tabindex="0" aria-checked="'+mg+'" data-m="margen"><b>2 · Por margen</b><span class="mut">Precio = costo + tu margen. Se recalcula solo cuando cambia un costo.</span>'
+        +(mg?'<div class="campos"><div class="two"><label>Margen %<input id="fMg" inputmode="decimal" value="'+esc(F.margen)+'" placeholder="Ej. 30" autocomplete="off"></label><label>Redondear a<select id="fRd">'+[[1,'Sin redondeo'],[10,'10 pesos'],[50,'50 pesos'],[100,'100 pesos'],[500,'500 pesos'],[1000,'1.000 pesos']].map(function(x){return '<option value="'+x[0]+'"'+(F.redondeo===x[0]?' selected':'')+'>'+x[1]+'</option>'}).join('')+'</select></label></div>'
+          +'<label style="margin-top:8px;display:grid;gap:4px">El margen es sobre<select id="fBs"><option value="costo"'+(F.base==='costo'?' selected':'')+'>el costo (costo × 1,30 para 30 %)</option><option value="venta"'+(F.base==='venta'?' selected':'')+'>el precio de venta (costo ÷ 0,70 para 30 %)</option></select></label>'
+          +'<div class="mut" style="margin-top:6px">'+PRC.conCosto+' de '+PRC.productos+' productos tienen costo. Los que no, se quedan como están.</div></div>':'')+'</div>'
+      +'<div class="opt" role="button" tabindex="0" aria-checked="false" data-m="pers"><b>3 · Personalizado</b><span class="mut">Cambia uno o varios precios sin tocar el resto. Abre el editor.</span></div>';
+    $('#fVer').textContent=mg?'Ver cómo quedaría':'Guardar esta forma';$('#fVer').className='btn'+(mg?'':' ok');
+  };
+  pintar();
+  $('#fOpts').onclick=function(e){
+    var o=e.target.closest('.opt');if(!o||e.target.closest('.campos'))return;
+    if(o.dataset.m==='pers'){cerrar();setTimeout(function(){editorPrecios(l)},300);return}
+    F.modo=o.dataset.m;reset();pintar();
+  };
+  $('#fOpts').addEventListener('input',function(e){if(e.target.id==='fMg')F.margen=e.target.value;reset()});
+  $('#fOpts').addEventListener('change',function(e){if(e.target.id==='fRd')F.redondeo=Number(e.target.value);if(e.target.id==='fBs')F.base=e.target.value;reset()});
+  var datos=function(acc){return {lista:l,modo:F.modo,base:F.base,margen:F.margen,redondeo:F.redondeo,accion:acc}};
+  var terminar=function(r){PRC.modos[l]={modo:F.modo,base:F.base,margen:Number(F.margen)||0,redondeo:F.redondeo};S.productos=null;cerrar();toast(r.message);SON.ok();vistaPrecios()};
+  $('#fVer').onclick=function(){
+    if(F.modo==='listado'){var b=this;b.disabled=true;api('guardarFormaPrecios',datos('aplicar'),nuevaLlave()).then(function(r){b.disabled=false;if(!r||!r.ok){$('#fRes').innerHTML='<div class="err">'+esc((r&&r.message)||'No se pudo guardar')+'</div>';return}terminar(r)});return}
+    var b=this;b.disabled=true;reset();
+    api('guardarFormaPrecios',datos('validar')).then(function(r){
+      b.disabled=false;
+      if(!r||!r.ok){$('#fRes').innerHTML='<div class="err">'+esc((r&&r.message)||'No se pudo calcular')+'</div>';return}
+      var ej=r.ejemplos.map(function(x){return '<tr><td>'+esc(titulo(x.nombre))+'<div class="mut">'+esc(x.codigo)+' · costo '+cop(x.costo)+'</div></td><td class="r">'+cop(x.antes)+'</td><td class="r"><b>'+cop(x.despues)+'</b></td></tr>'}).join('');
+      $('#fRes').innerHTML='<div class="card"><b>'+r.cambian+(r.cambian===1?' precio cambia':' precios cambian')+'</b>'+(r.sinCosto?'<div class="mut">'+r.sinCosto+' productos sin costo se quedan como están.</div>':'')+(r.fijados?'<div class="mut">'+r.fijados+' precios personalizados no se tocan.</div>':'')
+        +(ej?'<table><thead><tr><th>Producto</th><th class="r">Antes</th><th class="r">Después</th></tr></thead><tbody>'+ej+'</tbody></table>'+(r.cambian>r.ejemplos.length?'<div class="mut">…y '+(r.cambian-r.ejemplos.length)+' más.</div>':''):'')+'</div>';
+      var a=$('#fAp');a.hidden=false;a.textContent=r.cambian?'Aplicar margen ('+r.cambian+' precios)':'Guardar esta forma';
+    }).catch(function(){b.disabled=false;$('#fRes').innerHTML='<div class="err">No pudimos conectar.</div>'});
+  };
+  $('#fAp').onclick=function(){
+    var a=this;a.disabled=true;
+    api('guardarFormaPrecios',datos('aplicar'),nuevaLlave()).then(function(r){a.disabled=false;if(!r||!r.ok||!r.aplicado){$('#fRes').innerHTML='<div class="err">'+esc((r&&r.message)||'No se pudo aplicar')+'</div>';SON.error();return}terminar(r)}).catch(function(){a.disabled=false;$('#fRes').innerHTML='<div class="err">No pudimos conectar.</div>'});
+  };
+}
+/* Personalizado: cambiar uno o varios precios de una lista sin tocar el resto */
+function editorPrecios(l){
+  var z=ZONAS[l]||{nombre:LISTAS[l]},EP={q:'',cam:{},prods:[]};
+  modal('<div class="row"><h2 class="g" style="margin:0">Precios personalizados</h2><button class="btn s mini" id="cerrX" type="button">Cerrar</button></div><p class="mut">Lista '+l+' · <b>'+esc(z.nombre)+'</b>. Escribe el precio nuevo solo en los productos que quieras cambiar; los demás no se tocan.</p>'
+    +'<input id="epQ" type="search" placeholder="Buscar producto o código…" autocomplete="off" aria-label="Buscar producto" style="width:100%;margin:6px 0"><div id="epLista" role="group" aria-label="Productos"><div class="skl"><i></i><i></i></div></div><div id="epRes"></div>'
+    +'<div class="acciones"><button class="btn ok" id="epGo" type="button" disabled>Guardar cambios</button><button class="btn s" id="epNo" type="button">Cancelar</button></div>');
+  $('#epNo').onclick=cerrar;
+  var n=function(){return Object.keys(EP.cam).length};
+  var info=function(){var k=n(),b=$('#epGo');b.disabled=!k;b.textContent=k?'Guardar '+k+(k===1?' cambio':' cambios'):'Guardar cambios'};
+  var lista=function(){
+    var t=sinT(EP.q),it=EP.prods.filter(function(p){return !t||sinT(p.codigo+' '+p.nombre+' '+p.tono_presentacion+' '+p.marca).indexOf(t)>=0}),mas=it.length>60;it=it.slice(0,60);
+    $('#epLista').innerHTML=it.map(function(p){
+      var fij=(p.fijados||[]).indexOf(l)>=0,v=EP.cam[p.codigo];
+      return '<div class="pfila'+(v!==undefined?' cambio':'')+'"><div><b>'+esc(titulo(p.nombre))+(p.tono_presentacion?' <span class="mut">('+esc(titulo(p.tono_presentacion))+')</span>':'')+(fij?'<span class="fij">personalizado</span>':'')+'</b><small>'+esc(p.codigo)+(p.costo?' · costo '+cop(p.costo):'')+' · hoy '+(p.precios[l]?cop(p.precios[l]):'sin precio')+'</small>'+(fij?'<button class="btn s mini" type="button" data-so="'+esc(p.codigo)+'" style="margin-top:4px">Volver a la regla</button>':'')+'</div>'
+        +'<input inputmode="numeric" data-c="'+esc(p.codigo)+'" value="'+(v!==undefined?esc(v):'')+'" placeholder="'+(p.precios[l]||'precio')+'" aria-label="Precio nuevo de '+esc(p.nombre)+'"></div>'}).join('')+(mas?'<p class="mut">Hay más productos: usa el buscador.</p>':'')||'<div class="mut" style="padding:10px 0">Ningún producto coincide.</div>';
+  };
+  api('listarProductos',{}).then(function(r){
+    if(!r||!r.ok){$('#epLista').innerHTML='<div class="err">No se pudieron leer los productos.</div>';return}
+    EP.prods=r.productos.filter(function(p){return p.activo});lista();
+  }).catch(function(){$('#epLista').innerHTML='<div class="err">No pudimos conectar.</div>'});
+  $('#epQ').addEventListener('input',function(){EP.q=this.value;lista()});
+  $('#epLista').addEventListener('input',function(e){
+    var c=e.target.dataset&&e.target.dataset.c;if(!c)return;
+    var v=e.target.value.replace(/[^0-9]/g,'');if(v!==e.target.value)e.target.value=v;
+    if(v==='')delete EP.cam[c];else EP.cam[c]=v;
+    e.target.closest('.pfila').classList.toggle('cambio',v!=='');info();
+  });
+  $('#epLista').addEventListener('click',function(e){
+    var b=e.target.closest('[data-so]');if(!b)return;b.disabled=true;
+    api('soltarPrecios',{lista:l,codigos:[b.dataset.so]},nuevaLlave()).then(function(r){
+      if(!r||!r.ok){b.disabled=false;toast((r&&r.message)||'No se pudo');return}
+      toast(r.message);S.productos=null;return api('listarProductos',{}).then(function(x){if(x&&x.ok){EP.prods=x.productos.filter(function(p){return p.activo});lista()}});
+    });
+  });
+  $('#epGo').onclick=function(){
+    var b=this,cambios=Object.keys(EP.cam).map(function(c){return {codigo:c,precio:Number(EP.cam[c])}});b.disabled=true;
+    api('fijarPrecios',{lista:l,cambios:cambios,modo:'aplicar'},nuevaLlave()).then(function(r){
+      if(!r||!r.ok){b.disabled=false;$('#epRes').innerHTML='<div class="err">'+esc((r&&r.message)||'No se pudo guardar')+'</div>';SON.error();return}
+      S.productos=null;cerrar();toast(r.message);SON.ok();if(S.tab==='precios')vistaPrecios();
+    }).catch(function(){b.disabled=false;$('#epRes').innerHTML='<div class="err">No pudimos conectar.</div>'});
+  };
+}
+/* Costos desde Excel (código y costo) */
+function importarCostos(){
+  var D=null;
+  modal('<div class="row"><h2 class="g" style="margin:0">Cargar costos</h2><button class="btn s mini" id="cerrX" type="button">Cerrar</button></div><p class="mut">Sube un Excel con una columna de código y otra de costo. Primero se valida todo; si hay un error, no se guarda nada. Después, las listas por margen se recalculan solas.</p>'
+    +'<label class="fld"><span class="mut">Archivo Excel (.xlsx, .xls) o CSV</span><input type="file" id="cArch" accept=".xlsx,.xls,.csv"></label><div id="cBody"></div>');
+  $('#cArch').onchange=function(){
+    var f=this.files[0];if(!f)return;$('#cBody').innerHTML='<p class="mut">Leyendo…</p>';
+    cargarXlsx().then(function(){return f.arrayBuffer()}).then(function(buf){
+      var wb=XLSX.read(buf,{type:'array'}),ws=wb.Sheets[wb.SheetNames[0]],filas=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      var head=0;for(var i=0;i<Math.min(filas.length,10);i++){if(filas[i].filter(function(x){return String(x).trim()}).length>=2){head=i;break}}
+      D={cab:filas[head].map(String),datos:filas.slice(head+1).map(function(r,i){return {r:r,n:head+i+2}}).filter(function(x){return x.r.some(function(c){return String(c).trim()})})};
+      var ic=-1,ik=-1;D.cab.forEach(function(h,i){if(ic<0&&/c[oó]d|ref|sku/i.test(h))ic=i;else if(ik<0&&/costo|cost/i.test(h))ik=i});
+      var op=function(v){return '<option value="-1">— Elige —</option>'+D.cab.map(function(c,i){return '<option value="'+i+'"'+(i===v?' selected':'')+'>'+esc(c||('Columna '+(i+1)))+'</option>'}).join('')};
+      $('#cBody').innerHTML='<p class="mut">'+D.datos.length+' filas con datos.</p><div class="two"><label>Columna del código<select id="cC">'+op(ic)+'</select></label><label>Columna del costo<select id="cK">'+op(ik)+'</select></label></div><div id="cRes"></div>'
+        +'<div class="acciones"><button class="btn" id="cVer" type="button">Validar</button><button class="btn ok" id="cAp" type="button" hidden>Guardar costos</button></div>';
+      var filasC=function(){var a=Number($('#cC').value),b=Number($('#cK').value);return D.datos.map(function(x){return {_fila:x.n,codigo:String(x.r[a]==null?'':x.r[a]).trim(),costo:x.r[b]}})};
+      var llamar=function(modo,btn){
+        if(Number($('#cC').value)<0||Number($('#cK').value)<0){$('#cRes').innerHTML='<div class="err">Elige las dos columnas.</div>';return}
+        btn.disabled=true;
+        api('guardarCostos',{filas:filasC(),modo:modo},modo==='aplicar'?nuevaLlave():undefined).then(function(r){
+          btn.disabled=false;
+          if(!r||!r.ok){$('#cRes').innerHTML='<div class="err">'+esc((r&&r.message)||'No se pudo')+(r&&r.errores?'<br>'+r.errores.slice(0,8).map(function(x){return 'Fila '+x.fila+' ('+esc(x.codigo)+'): '+esc(x.message)}).join('<br>'):'')+'</div>';return}
+          if(modo==='validar'){$('#cRes').innerHTML='<div class="ok2" role="status">'+esc(r.message)+'</div>';$('#cAp').hidden=false;return}
+          S.productos=null;cerrar();toast(r.message);SON.ok();if(S.tab==='precios')vistaPrecios();
+        }).catch(function(){btn.disabled=false;$('#cRes').innerHTML='<div class="err">No pudimos conectar.</div>'});
+      };
+      $('#cVer').onclick=function(){$('#cAp').hidden=true;llamar('validar',this)};
+      $('#cAp').onclick=function(){llamar('aplicar',this)};
+    }).catch(function(e){$('#cBody').innerHTML='<div class="err">'+esc(e.message||'No se pudo leer el archivo')+'</div>'});
+  };
+}
+
 /* ——— Ajustes ——— */
 function editarZonas(){
-  var h='<div class="row"><h2 class="g" style="margin:0">Zonas y listas</h2><button class="btn s mini" id="cerrX" type="button">Cerrar</button></div>'
-    +'<p class="mut">Cada lista tiene un nombre (por ejemplo «Zona 1») y las ciudades que cubre. Separa las ciudades con comas. Los precios de cada lista se cambian aparte.</p><form class="fld" id="fZ" novalidate>';
-  [1,2,3,4,5].forEach(function(l){var z=ZONAS[l]||{nombre:LISTAS[l],ciudades:[]};
-    h+='<div class="card"><label>Lista '+l+' · nombre<input id="zN'+l+'" value="'+esc(z.nombre)+'" maxlength="40" autocomplete="off"></label><label>Ciudades<textarea id="zC'+l+'" rows="2" maxlength="900" placeholder="Ej. Bucaramanga, Floridablanca, Girón">'+esc((z.ciudades||[]).join(', '))+'</textarea></label></div>'});
-  h+='<div id="zErr" role="alert"></div><div class="acciones"><button class="btn ok" type="submit">Guardar zonas</button><button class="btn s" id="zNo" type="button">Cancelar</button></div></form>';
-  modal(h);
+  var E={n:{},g:{ciudades:{},pueblos:{}},abierto:null,q:''};
+  [1,2,3,4,5].forEach(function(l){var z=ZONAS[l]||{nombre:LISTAS[l],ciudades:[],pueblos:[]};E.n[l]=z.nombre;E.g.ciudades[l]=(z.ciudades||[]).slice();E.g.pueblos[l]=(z.pueblos||[]).slice()});
+  var dueno=function(m){for(var l=1;l<=4;l++)if(E.g.ciudades[l].indexOf(m)>=0||E.g.pueblos[l].indexOf(m)>=0)return l;return 0};
+  var tit={ciudades:'Ciudades',pueblos:'Pueblos'};
+  modal('<div class="row"><h2 class="g" style="margin:0">Zonas y listas</h2><button class="btn s mini" id="cerrX" type="button">Cerrar</button></div>'
+    +'<p class="mut">Ponle nombre a cada lista y elige sus ciudades y pueblos de la lista oficial (Santander, Norte de Santander, Arauca, Cesar, Boyacá y Antioquia). Así puedes armar zonas como «Pamplona y pueblos». Un municipio solo puede estar en una zona, así no se cruzan datos.</p>'
+    +'<form id="fZ" novalidate><div id="zCards"></div><div id="zErr" role="alert"></div><div class="acciones"><button class="btn ok" type="submit">Guardar zonas</button><button class="btn s" id="zNo" type="button">Cancelar</button></div></form>');
+  var lista=function(){
+    var a=E.abierto,t=sinT(E.q),h='';
+    Object.keys(MUNI).forEach(function(d){
+      var it=MUNI[d].filter(function(m){return !t||sinT(m).indexOf(t)>=0});
+      if(!it.length)return;
+      h+='<div class="zg">'+esc(d)+'</div>'+it.map(function(m){
+        var o=dueno(m),otra=o&&o!==a.l,sel=E.g[a.campo][a.l].indexOf(m)>=0,mismo=!otra&&o===a.l&&!sel;
+        return '<label class="mu'+(otra||mismo?' off':'')+'"><input type="checkbox" data-m="'+esc(m)+'"'+(sel?' checked':'')+(otra||mismo?' disabled':'')+'><span>'+esc(m)+'</span>'+(otra?'<small>en «'+esc(E.n[o])+'»</small>':mismo?'<small>ya está en esta zona</small>':'')+'</label>'}).join('');
+    });
+    $('#zLista').innerHTML=h||'<div class="mut" style="padding:12px 4px">Ninguna coincide.</div>';
+  };
+  var grupo=function(l,campo){
+    var arr=E.g[campo][l],abierto=E.abierto&&E.abierto.l===l&&E.abierto.campo===campo;
+    return '<div class="mut" style="margin-top:10px">'+tit[campo]+' ('+arr.length+')</div><div class="chipsc">'+(arr.length?arr.map(function(m){return '<span class="chipc">'+esc(m)+'<button type="button" data-q="'+l+'" data-c="'+campo+'" data-m="'+esc(m)+'" aria-label="Quitar '+esc(m)+'">×</button></span>'}).join(''):'<span class="mut">Todavía ninguno.</span>')+'</div>'
+      +'<button class="btn s mini" type="button" data-add="'+l+'" data-c="'+campo+'" aria-expanded="'+abierto+'">'+(abierto?'Cerrar lista':'Agregar '+tit[campo].toLowerCase())+'</button>'
+      +(abierto?'<div class="pick"><input id="zQ" type="search" placeholder="Buscar municipio…" value="'+esc(E.q)+'" autocomplete="off" aria-label="Buscar municipio"><div id="zLista" role="group" aria-label="Municipios disponibles"></div></div>':'');
+  };
+  var pintar=function(){
+    var st=$('#zLista')?$('#zLista').scrollTop:0,h='';
+    [1,2,3,4,5].forEach(function(l){
+      h+='<div class="card"><label>Lista '+l+' · nombre<input id="zN'+l+'" data-n="'+l+'" value="'+esc(E.n[l])+'" maxlength="40" autocomplete="off"></label>';
+      h+=l===5?'<p class="mut" style="margin:8px 0 0">Detal vale para todas las ciudades: no lleva ciudades ni pueblos propios.</p>':grupo(l,'ciudades')+grupo(l,'pueblos');
+      h+='</div>';
+    });
+    $('#zCards').innerHTML=h;
+    if(E.abierto){lista();$('#zLista').scrollTop=st}
+  };
+  pintar();
+  var cards=$('#zCards');
+  cards.addEventListener('input',function(e){
+    if(e.target.dataset.n){E.n[e.target.dataset.n]=e.target.value;if(E.abierto)lista();return}
+    if(e.target.id==='zQ'){E.q=e.target.value;lista()}
+  });
+  cards.addEventListener('change',function(e){
+    var m=e.target.dataset&&e.target.dataset.m;if(!m||e.target.type!=='checkbox')return;
+    var a=E.abierto,arr=E.g[a.campo][a.l],k=arr.indexOf(m);
+    if(e.target.checked&&k<0&&!dueno(m))arr.push(m);else if(!e.target.checked&&k>=0)arr.splice(k,1);
+    arr.sort(function(x,y){return x.localeCompare(y,'es')});
+    pintar();
+  });
+  cards.addEventListener('click',function(e){
+    var q=e.target.closest('[data-q]');
+    if(q){var arr=E.g[q.dataset.c][Number(q.dataset.q)],k=arr.indexOf(q.dataset.m);if(k>=0)arr.splice(k,1);pintar();return}
+    var a=e.target.closest('[data-add]');
+    if(a){var n=Number(a.dataset.add),ya=E.abierto&&E.abierto.l===n&&E.abierto.campo===a.dataset.c;E.abierto=ya?null:{l:n,campo:a.dataset.c};E.q='';pintar();var z=$('#zQ');if(z)z.focus()}
+  });
   $('#zNo').onclick=cerrar;
   $('#fZ').onsubmit=function(e){
     e.preventDefault();
-    var zonas={};[1,2,3,4,5].forEach(function(l){zonas[l]={nombre:$('#zN'+l).value,ciudades:$('#zC'+l).value}});
+    var zonas={};[1,2,3,4,5].forEach(function(l){zonas[l]={nombre:E.n[l],ciudades:E.g.ciudades[l],pueblos:E.g.pueblos[l]}});
     var b=this.querySelector('[type=submit]');b.disabled=true;
     api('guardarZonas',{zonas:zonas},nuevaLlave()).then(function(r){
       if(!r||!r.ok){b.disabled=false;$('#zErr').innerHTML='<div class="err">'+esc((r&&r.message)||'No se pudo guardar')+'</div>';SON.error();return}
@@ -1243,8 +1505,8 @@ function vistaAjustes(){
         +fila('fDP','Por volumen: porcentaje','Descuento sobre esa línea.','aDP',r.descuento_volumen_pct,'%')
         +fila('fPP','Pronto pago Kerasolis','Si paga el mismo día de la entrega.','aPP',r.descuento_pronto_pago_kerasolis_pct,'%')+'</div>'
       +'<div class="card aj"><h3>Zonas y listas de precios</h3><div class="mut">Ponle nombre a cada lista y escribe las ciudades que cubre. El nombre se ve en enlaces, productos, reportes y pedidos.</div>'
-        +[1,2,3,4,5].map(function(l){var z=ZONAS[l]||{nombre:LISTAS[l],ciudades:[]},cs=z.ciudades||[];return '<div class="fila"><div class="g"><b>Lista '+l+' · '+esc(z.nombre)+'</b><div class="mut">'+(cs.length?esc(cs.slice(0,4).join(', '))+(cs.length>4?' y '+(cs.length-4)+' más':''):'Sin ciudades escritas')+'</div></div><button class="btn s mini" data-pl="'+l+'" type="button">Ajustar precios</button></div>'}).join('')
-        +'<div class="acciones" style="position:static;background:none;padding:10px 0 0"><button class="btn" id="zEdit" type="button">Editar nombres y ciudades</button></div></div>'
+        +[1,2,3,4,5].map(function(l){var z=ZONAS[l]||{nombre:LISTAS[l],ciudades:[]},cs=z.ciudades||[],pu=z.pueblos||[];return '<div class="fila"><div class="g"><b>Lista '+l+' · '+esc(z.nombre)+'</b><div class="mut">'+(cs.length||pu.length?esc(cs.slice(0,4).join(', '))+(cs.length>4?' y '+(cs.length-4)+' más':'')+(pu.length?(cs.length?' · ':'')+pu.length+(pu.length===1?' pueblo':' pueblos'):''):(l===5?'Todas las ciudades':'Sin ciudades escritas'))+'</div></div></div>'}).join('')
+        +'<div class="acciones" style="position:static;background:none;padding:10px 0 0"><button class="btn" id="zEdit" type="button">Editar nombres, ciudades y pueblos</button></div></div>'
       +'<div class="card aj"><h3>Cambiar mi PIN</h3><div class="mut">Lleva de 4 a 6 números. Al cambiarlo se cierran tus otras sesiones.</div><form class="fld" id="fC"><div class="two"><label>PIN actual<input id="cA" type="password" inputmode="numeric" maxlength="6" autocomplete="current-password"></label><label>PIN nuevo<input id="cN" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password"></label></div><button class="btn mini" type="submit" style="justify-self:start">Cambiar PIN</button></form></div>'
       +'<div class="card aj"><h3>Avisos y sonido</h3><div class="mut">Cuando llega un pedido nuevo. Los avisos del navegador funcionan mientras el panel esté abierto, aunque estés en otra pestaña.</div>'
         +'<div class="fila"><div class="g"><b>Avisos del navegador</b><div class="mut" id="avEst"></div></div><button class="btn mini" id="avBtn" type="button"></button></div>'
@@ -1262,7 +1524,6 @@ function vistaAjustes(){
     pintarPref();
     $('#ajAyuda').onclick=ayuda;$('#ajTour').onclick=recorrido;
     $('#zEdit').onclick=editarZonas;
-    document.querySelectorAll('[data-pl]').forEach(function(b){b.onclick=function(){ajustarPrecios(Number(b.dataset.pl))}});
     $('#avBtn').onclick=function(){if(avisosActivos()){PREF.avisos=false;guardarPref();pintarPref()}else pedirAvisos().then(pintarPref)};
     $('#sonBtn').onclick=function(){PREF.sonido=!PREF.sonido;guardarPref();pintarPref();if(PREF.sonido)SON.prueba()};
     $('#sonPrueba').onclick=function(){var v=PREF.sonido;PREF.sonido=true;SON.prueba();PREF.sonido=v};
@@ -1384,7 +1645,7 @@ function revisarRestock(){
 
 /* ——— Productos y precios ——— */
 var NOMBRE_LISTA={1:'Bucaramanga',2:'Sábana y pueblos',3:'Pamplona/Cúcuta',4:'Arauca/Tibú',5:'Detal'};
-var ZONAS={};
+var ZONAS={},MUNI={};
 /* Nombres y ciudades de las 5 listas (los define el gerente en Ajustes): todo el panel los usa */
 function aplicarZonas(z){
   ZONAS=z||{};
@@ -1392,7 +1653,7 @@ function aplicarZonas(z){
 }
 function cargarZonas(){
   return api('leerZonas',{}).then(function(r){
-    if(r&&r.ok){var antes=JSON.stringify(ZONAS);aplicarZonas(r.zonas);return antes!==JSON.stringify(ZONAS)}
+    if(r&&r.ok){var antes=JSON.stringify(ZONAS);aplicarZonas(r.zonas);MUNI=r.municipios||{};return antes!==JSON.stringify(ZONAS)}
     return false;
   }).catch(function(){return false});
 }
@@ -1453,7 +1714,8 @@ function formProducto(codigo){
     +'<div class="two"><label>Se vende por<select id="pUV"'+dis()+'><option value="unidad"'+(p.unidad_venta==='unidad'?' selected':'')+'>Unidad</option><option value="caja"'+(p.unidad_venta==='caja'?' selected':'')+'>Caja</option></select></label>'+inp('pPor','Unidades por caja',p.unidades_por_caja,'inputmode="numeric"')+'</div>'
     +'<div class="two">'+inp('pFoto','Foto (opcional: vacío = se busca por el código)',p.foto,'maxlength="60" placeholder="EJ-004.jpg"')+'<label>Novedad<select id="pNov"'+dis()+'><option value="0"'+(p.novedad?'':' selected')+'>No</option><option value="1"'+(p.novedad?' selected':'')+'>Sí</option></select></label></div>'
     +'<label>Estado<select id="pAct"><option value="1"'+(p.activo?' selected':'')+'>Activo</option><option value="0"'+(p.activo?'':' selected')+'>Apagado (no se muestra)</option></select></label>'
-    +'<b>Precios con IVA</b><div class="two">'+[1,2,3,4,5].map(function(l){return inp('pP'+l,'Lista '+l+' · '+NOMBRE_LISTA[l],p.precios[l]||'','inputmode="numeric"',true)}).join('')+'</div>'
+    +'<b>Precios con IVA</b><div class="two">'+[1,2,3,4,5].map(function(l){return inp('pP'+l,'Lista '+l+' · '+NOMBRE_LISTA[l]+((p.fijados||[]).indexOf(l)>=0?' (personalizado)':''),p.precios[l]||'','inputmode="numeric"',true)}).join('')+'</div>'
+    +'<div class="two">'+inp('pCosto','Costo (opcional: sirve para calcular por margen)',p.costo||'','inputmode="numeric" placeholder="Ej. 5000"',true)+'</div>'
     +'<p class="mut">Un precio vacío o en 0 significa que el producto no se ofrece en esa lista.</p><div id="pErr"></div>'
     +'<div class="row"><button class="btn" type="submit">Guardar</button><button class="btn s" type="button" id="no">Cancelar</button></div></form>';
   modal(h);$('#cerr').onclick=cerrar;$('#no').onclick=cerrar;
@@ -1461,6 +1723,7 @@ function formProducto(codigo){
     e.preventDefault();
     var pr={};[1,2,3,4,5].forEach(function(l){pr[l]=aNumero($('#pP'+l).value)});
     var prod={codigo:$('#pCod').value.trim(),marca:$('#pMarca').value,nombre:$('#pNom').value,tono_presentacion:$('#pTono').value,descripcion:$('#pDesc').value,unidad_venta:$('#pUV').value,unidades_por_caja:aNumero($('#pPor').value)||1,foto:$('#pFoto').value.trim(),novedad:$('#pNov').value==='1',activo:$('#pAct').value==='1',precios:pr};
+    var cs=$('#pCosto').value.trim();if(cs!=='')prod.costo=aNumero(cs);
     var b=this.querySelector('button[type=submit]');b.disabled=true;
     api('guardarProducto',{producto:prod,crear:nuevo},nuevaLlave()).then(function(r){
       b.disabled=false;
@@ -1472,9 +1735,10 @@ function formProducto(codigo){
 
 /* ——— Importar el Excel de productos y precios ——— */
 var CAMPOS_IMP=[['codigo','Código',/c[oó]d|ref|sku/i],['marca','Marca',/marca|l[ií]nea/i],['nombre','Nombre',/nombre|producto|art[ií]culo/i],['tono_presentacion','Tono o presentación',/tono|presentaci|variante|color/i],
-  ['descripcion','Descripción',/descrip|detalle/i],['unidad_venta','Se vende por (unidad/caja)',/venta|vende/i],['unidades_por_caja','Unidades por caja',/caja/i],['foto','Foto',/foto|imagen/i],['novedad','Novedad',/novedad|nuevo/i],['activo','Activo',/activo|habilitado/i],
+  ['descripcion','Descripción',/descrip|detalle/i],['unidad_venta','Se vende por (unidad/caja)',/venta|vende/i],['unidades_por_caja','Unidades por caja',/caja/i],['foto','Foto',/foto|imagen/i],['novedad','Novedad',/novedad|nuevo/i],['activo','Activo',/activo|habilitado/i],['costo','Costo (opcional, para calcular por margen)',/costo|cost/i],
   ['p1','Precio lista 1 · Bucaramanga',/lista.?1|bucaramanga/i],['p2','Precio lista 2 · Sábana y pueblos',/lista.?2|s[aá]bana|pueblos/i],['p3','Precio lista 3 · Pamplona/Cúcuta',/lista.?3|pamplona|c[uú]cuta/i],['p4','Precio lista 4 · Arauca/Tibú',/lista.?4|arauca|tib[uú]/i],['p5','Precio lista 5 · Detal',/lista.?5|detal/i]];
 var IMP=null;
+function etiquetaImp(c){var m=/^p(\d)$/.exec(c[0]);return m?'Precio lista '+m[1]+' · '+(LISTAS[m[1]]||''):c[1]}
 function importarExcel(){
   modal('<div class="row"><h2 class="g" style="margin:0">Importar productos y precios</h2><button class="btn s mini" id="cerr">Cerrar</button></div>'
     +'<p class="mut">Sube el Excel de Juan Carlos (una fila por producto, con una columna de precio por lista). Primero se valida todo y, si hay un solo error, no se escribe nada.</p>'
@@ -1495,7 +1759,7 @@ function mapaImp(){
   var usados={},sel={};
   CAMPOS_IMP.forEach(function(c){IMP.cab.forEach(function(h,i){if(sel[c[0]]===undefined&&!usados[i]&&c[2].test(h)){sel[c[0]]=i;usados[i]=1}})});
   var op=function(v){return '<option value="-1">— No usar —</option>'+IMP.cab.map(function(c,i){return '<option value="'+i+'"'+(i===v?' selected':'')+'>'+esc(c||('Columna '+(i+1)))+'</option>'}).join('')};
-  $('#iBody').innerHTML='<p class="mut">'+IMP.datos.length+' filas con datos. Revisa que cada campo apunte a la columna correcta:</p><div class="fld">'+CAMPOS_IMP.map(function(c){return '<label>'+esc(c[1])+'<select data-c="'+c[0]+'">'+op(sel[c[0]]===undefined?-1:sel[c[0]])+'</select></label>'}).join('')+'</div>'
+  $('#iBody').innerHTML='<p class="mut">'+IMP.datos.length+' filas con datos. Revisa que cada campo apunte a la columna correcta:</p><div class="fld">'+CAMPOS_IMP.map(function(c){return '<label>'+esc(etiquetaImp(c))+'<select data-c="'+c[0]+'">'+op(sel[c[0]]===undefined?-1:sel[c[0]])+'</select></label>'}).join('')+'</div>'
     +'<label style="display:flex;gap:8px;align-items:center;margin-top:10px"><input type="checkbox" id="iDes" style="width:auto;min-height:0"> Apagar los productos que NO vienen en este archivo</label><div class="row" style="margin-top:12px"><button class="btn" id="iVal">Validar</button></div><div id="iRes"></div>';
   $('#iVal').onclick=function(){enviarImp('validar')};
 }
@@ -1508,7 +1772,7 @@ function filasImp(){
     var nov=v(x.r,'novedad'),act=v(x.r,'activo');
     return {_fila:x.n,codigo:String(v(x.r,'codigo')==null?'':v(x.r,'codigo')).trim(),marca:v(x.r,'marca'),nombre:v(x.r,'nombre'),tono_presentacion:v(x.r,'tono_presentacion'),descripcion:v(x.r,'descripcion'),
       unidad_venta:uv,unidades_por_caja:por,foto:v(x.r,'foto'),novedad:nov===undefined?false:/^(si|sí|1|true|x)$/i.test(String(nov).trim()),activo:act===undefined?true:!/^(no|0|false)$/i.test(String(act).trim()),
-      precios:{1:v(x.r,'p1'),2:v(x.r,'p2'),3:v(x.r,'p3'),4:v(x.r,'p4'),5:v(x.r,'p5')}};
+      costo:v(x.r,'costo'),precios:{1:v(x.r,'p1'),2:v(x.r,'p2'),3:v(x.r,'p3'),4:v(x.r,'p4'),5:v(x.r,'p5')}};
   });
 }
 function enviarImp(modo){
@@ -1627,7 +1891,7 @@ function pintarReporte(soloPeriodo){
   var mx=max(d.serie,'ventas');
   h+='<div class="card"><b>Ventas por día</b><div class="dias">'+d.serie.map(function(x){return '<div title="'+esc(x.dia)+' · '+cop(x.ventas)+'" style="height:'+Math.max(4,Math.round(x.ventas/mx*100))+'%"></div>'}).join('')+'</div><div class="mut"><span>'+esc(d.serie[0].dia)+'</span><span>'+esc(d.serie[d.serie.length-1].dia)+'</span></div></div>';
   var mv=max(d.vendedores,'ventas');
-  h+='<div class="card"><b>Por vendedor</b>'+d.vendedores.map(function(v){return '<div style="margin-top:10px"><div class="row"><span class="g">'+esc(v.nombre)+'</span><b>'+cop(v.ventas)+'</b></div><div class="barra"><i style="width:'+Math.round(v.ventas/mv*100)+'%"></i></div><div class="mut">'+v.pedidos+(v.pedidos===1?' pedido':' pedidos')+' · '+v.unidades+' unidades · '+v.clientes+(v.clientes===1?' cliente':' clientes')+' · ticket '+cop(v.ticket)+(v.pendientes?' · <b style="color:var(--warn)">'+v.pendientes+' por aprobar ('+cop(v.valorPendiente)+')</b>':'')+'</div></div>'}).join('')+'</div>';
+  h+='<div class="card"><b>Por vendedor</b>'+d.vendedores.map(function(v){return '<div style="margin-top:10px"><div class="row"><span class="g">'+esc(v.nombre)+'</span><b>'+cop(v.ventas)+'</b></div><div class="barra"><i style="width:'+Math.round(v.ventas/mv*100)+'%"></i></div><div class="mut">'+v.pedidos+(v.pedidos===1?' pedido':' pedidos')+' · '+v.unidades+' unidades · '+v.clientes+(v.clientes===1?' cliente':' clientes')+' · ticket '+cop(v.ticket)+(v.pendientes?' · <b style="color:var(--warn)">'+v.pendientes+' por aprobar ('+cop(v.valorPendiente)+')</b>':'')+(v.meta&&REP.preset==='mes'?' · <b>Meta '+cop(v.meta)+': '+Math.round(v.ventas/v.meta*100)+' %</b>':'')+'</div></div>'}).join('')+'</div>';
   var mm=max(d.marcas,'ventas'),tm=d.marcas.reduce(function(s,m){return s+m.ventas},0)||1;
   h+='<div class="card"><b>Por marca</b>'+d.marcas.map(function(m){return '<div style="margin-top:10px"><div class="row"><span class="g">'+esc(m.marca)+'</span><b>'+cop(m.ventas)+'</b> <span class="mut">'+Math.round(m.ventas/tm*100)+' %</span></div><div class="barra"><i style="width:'+Math.round(m.ventas/mm*100)+'%"></i></div></div>'}).join('')+'</div>';
   var ps=d.productos.slice().sort(function(a,b){return REP.prod==='valor'?b.ventas-a.ventas:b.unidades-a.unidades}).slice(0,15);
@@ -1722,7 +1986,7 @@ function cerrarPal(){$('#pal').hidden=true;if($('#ov').hidden)document.body.styl
 function itemsPal(q){
   var t=sinT(q),out=[],ok=function(x){return !t||sinT(x).indexOf(t)>=0};
   var nuevo=function(g,ic,tt,sub,fn,extra){out.push({g:g,ic:ic,t:tt,s:sub,f:fn,x:extra||''})};
-  var peds=S.pedidos.filter(function(p){return ok([p.id,p.negocio,p.recibe,p.telefono,p.cedula_nit,nombreVend(p.vendedor),p.estado.replace('_',' ')].join(' '))});
+  var peds=S.pedidos.filter(function(p){return ok([p.id,p.negocio,p.cliente,p.recibe,p.telefono,p.cedula_nit,nombreVend(p.vendedor),p.estado.replace('_',' ')].join(' '))});
   peds.slice(0,t?8:4).forEach(function(p){nuevo('Pedidos','i-pedidos',titulo(p.negocio)+' · '+p.id,nombreVend(p.vendedor)+' · '+cuando(p.fecha)+' · '+p.estado.replace('_',' ').toLowerCase(),function(){S.filtro='TODOS';irA('pedidos');detallePedido(p.id)},cop(p.total))});
   if(t&&S.productos)S.productos.filter(function(p){return ok([p.codigo,p.nombre,titulo(p.nombre),p.tono_presentacion,p.marca].join(' '))}).slice(0,6).forEach(function(p){nuevo('Productos','i-productos',titulo(p.nombre)+(p.tono_presentacion?' ('+titulo(p.tono_presentacion)+')':''),p.codigo+' · '+p.marca+' · '+(p.stock===null?'sin stock cargado':p.stock+' unid.'),function(){S.qprod=p.nombre;S.fprod='todos';irA('productos')})});
   if(t)S.vendedores.filter(function(v){return ok([v.id,v.nombre,v.whatsapp,v.zona].join(' '))}).slice(0,5).forEach(function(v){nuevo('Vendedores','i-vendedores',v.nombre,(v.whatsapp||'sin WhatsApp')+(v.zona?' · '+v.zona:''),function(){irA('vendedores')})});
