@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#111111">
+<meta name="color-scheme" content="light">
 <link rel="manifest" href="panel.webmanifest">
 <link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png">
 <link rel="apple-touch-icon" href="icons/panel-apple-touch-icon.png">
@@ -16,7 +17,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@400;500;600&display=swap">
 <style>
 /* Panel de trabajo: más denso y práctico que el catálogo, con la misma paleta negro y dorado. */
-:root{--ink:#111;--gold:#C9A24B;--gold-d:#7f5c12;--bg:#f6f3ec;--card:#fff;--line:#e6dfcf;--mut:#625b50;--ok:#2f6b3f;--bad:#a63a2e;--warn:#9a6b00;
+:root{--ink:#111;--gold:#C9A24B;--gold-d:#7f5c12;--bg:#f6f3ec;--card:#fff;--line:#e6dfcf;--mut:#625b50;--ok:#2f6b3f;--bad:#a63a2e;--warn:#7d5700;
 --disp:'Playfair Display',Georgia,serif;--body:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;--ease:cubic-bezier(.23,1,.32,1)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
@@ -70,6 +71,7 @@ h2{font:600 22px var(--disp);margin:0 0 12px}
 input,select,textarea{border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff;color:var(--ink);width:100%;min-height:46px;font-size:16px;scroll-margin-block:90px}
 textarea{min-height:64px;resize:vertical}
 input:focus,select:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px}
+::placeholder{color:#7a7366;opacity:1}
 .mal{border-color:var(--bad)!important}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(max-width:560px){.two{grid-template-columns:1fr}}
@@ -109,7 +111,7 @@ td.r,th.r{text-align:right;white-space:nowrap}
 </head>
 <body>
 <header><div class="wrap top">
-  <div class="mark">DS</div>
+  <div class="mark" aria-hidden="true">DS</div>
   <div class="tt"><h1>Panel Distrisander</h1><small id="quien">Acceso con PIN</small></div>
   <div class="sp" id="acc" hidden><button class="btn s mini" id="btnAct" type="button" aria-label="Actualizar"><span aria-hidden="true">↻</span><span class="lbl"> Actualizar</span></button><button class="btn s mini" id="btnSalir" type="button">Salir</button></div>
 </div></header>
