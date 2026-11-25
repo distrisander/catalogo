@@ -1,0 +1,285 @@
+{
+ "config": {
+  "nombre_catalogo": "Distrisander Cosméticos",
+  "pedido_minimo": 500000,
+  "whatsapp_detal": "573147356350",
+  "pocas_unidades": 12,
+  "descuento_volumen_desde": 12,
+  "descuento_volumen_pct": 5,
+  "descuento_pronto_pago_kerasolis_pct": 10,
+  "agotado": "ocultar"
+ },
+ "listas": [
+  {
+   "lista": 1,
+   "nombre": "Bucaramanga y área metropolitana",
+   "zonas": "Bucaramanga y área metropolitana"
+  },
+  {
+   "lista": 2,
+   "nombre": "Sábana de Torres y pueblos",
+   "zonas": "Sábana de Torres, San Alberto, Aguachica, Ocaña, San Martín, Puerto Wilches, San Pablo, Santa Rosa, San Vicente, Cimitarra, Puerto Berrío, San Gil, Charalá, Barichara, Villanueva, Socorro, Oiba, Barbosa, Vélez, Moniquirá, Zapatoca"
+  },
+  {
+   "lista": 3,
+   "nombre": "Pamplona, Cúcuta y área",
+   "zonas": "Pamplona, Chinacota, Cúcuta y área metropolitana"
+  },
+  {
+   "lista": 4,
+   "nombre": "Arauca, Tibú y zona roja",
+   "zonas": "Arauca, Tibú y zona roja"
+  },
+  {
+   "lista": 5,
+   "nombre": "Detal",
+   "zonas": "Precio al cliente final"
+  }
+ ],
+ "marcas": [
+  {
+   "marca": "Pantera Celeste",
+   "logo": "pantera-celeste.png",
+   "orden": 1,
+   "descripcion": "Maquillaje"
+  },
+  {
+   "marca": "Kerasolis",
+   "logo": "kerasolis.png",
+   "orden": 2,
+   "descripcion": "Cuidado capilar"
+  }
+ ],
+ "productos": [
+  {
+   "codigo": "EJ-001",
+   "marca": "Kerasolis",
+   "nombre": "EJEMPLO Shampoo nutrición",
+   "tono": "Sachet",
+   "descripcion": "Limpia y nutre el cabello.",
+   "unidad_venta": "caja",
+   "por_caja": 24,
+   "foto": "ej-001.jpg",
+   "novedad": false,
+   "activo": true,
+   "precios": {
+    "1": 60000,
+    "2": 62000,
+    "3": 64000,
+    "4": 66000,
+    "5": 85000
+   },
+   "stock": 40
+  },
+  {
+   "codigo": "EJ-002",
+   "marca": "Kerasolis",
+   "nombre": "EJEMPLO Ampolla capilar",
+   "tono": "Ampolla",
+   "descripcion": "Tratamiento intensivo de uso semanal.",
+   "unidad_venta": "caja",
+   "por_caja": 12,
+   "foto": "ej-002.jpg",
+   "novedad": true,
+   "activo": true,
+   "precios": {
+    "1": 48000,
+    "2": 50000,
+    "3": 51000,
+    "4": 53000,
+    "5": 68000
+   },
+   "stock": 10
+  },
+  {
+   "codigo": "EJ-003",
+   "marca": "Kerasolis",
+   "nombre": "EJEMPLO Sachet de aceite",
+   "tono": "Sachet",
+   "descripcion": "Brillo y suavidad.",
+   "unidad_venta": "caja",
+   "por_caja": 48,
+   "foto": "ej-003.jpg",
+   "novedad": false,
+   "activo": true,
+   "precios": {
+    "1": 90000,
+    "2": 92000,
+    "3": 95000,
+    "4": 98000,
+    "5": 125000
+   },
+   "stock": 100
+  },
+  {
+   "codigo": "EJ-004",
+   "marca": "Pantera Celeste",
+   "nombre": "EJEMPLO Labial mate",
+   "tono": "Rosa",
+   "descripcion": "Color intenso de larga duración.",
+   "unidad_venta": "unidad",
+   "por_caja": 1,
+   "foto": "ej-004.jpg",
+   "novedad": true,
+   "activo": true,
+   "precios": {
+    "1": 9000,
+    "2": 9300,
+    "3": 9600,
+    "4": 9900,
+    "5": 14000
+   },
+   "stock": 30
+  },
+  {
+   "codigo": "EJ-005",
+   "marca": "Pantera Celeste",
+   "nombre": "EJEMPLO Labial mate",
+   "tono": "Vino",
+   "descripcion": "Color intenso de larga duración.",
+   "unidad_venta": "unidad",
+   "por_caja": 1,
+   "foto": "ej-005.jpg",
+   "novedad": true,
+   "activo": true,
+   "precios": {
+    "1": 9000,
+    "2": 9300,
+    "3": 9600,
+    "4": 9900,
+    "5": 14000
+   },
+   "stock": 0
+  },
+  {
+   "codigo": "EJ-006",
+   "marca": "Pantera Celeste",
+   "nombre": "EJEMPLO Base líquida",
+   "tono": "Beige",
+   "descripcion": "Cobertura media, acabado natural.",
+   "unidad_venta": "unidad",
+   "por_caja": 1,
+   "foto": "",
+   "novedad": false,
+   "activo": true,
+   "precios": {
+    "1": 14000,
+    "2": 14500,
+    "3": 15000,
+    "4": 15500,
+    "5": 22000
+   },
+   "stock": 18
+  }
+ ],
+ "vendedores": [
+  {
+   "id": "camilo",
+   "nombre": "Camilo",
+   "whatsapp": "",
+   "activo": true
+  },
+  {
+   "id": "tatiana",
+   "nombre": "Tatiana",
+   "whatsapp": "",
+   "activo": true
+  },
+  {
+   "id": "juancarlos",
+   "nombre": "Juan Carlos",
+   "whatsapp": "573147356350",
+   "activo": true
+  },
+  {
+   "id": "yadira",
+   "nombre": "Yadira",
+   "whatsapp": "",
+   "activo": true
+  },
+  {
+   "id": "impulsadora1",
+   "nombre": "Impulsadora 1 (por definir)",
+   "whatsapp": "",
+   "activo": false
+  },
+  {
+   "id": "impulsadora2",
+   "nombre": "Impulsadora 2 (por definir)",
+   "whatsapp": "",
+   "activo": false
+  }
+ ],
+ "enlaces": [
+  {
+   "vendedor": "camilo",
+   "lista": 2,
+   "activo": true
+  },
+  {
+   "vendedor": "camilo",
+   "lista": 3,
+   "activo": true
+  },
+  {
+   "vendedor": "tatiana",
+   "lista": 1,
+   "activo": true
+  },
+  {
+   "vendedor": "tatiana",
+   "lista": 2,
+   "activo": true
+  },
+  {
+   "vendedor": "juancarlos",
+   "lista": 1,
+   "activo": true
+  },
+  {
+   "vendedor": "juancarlos",
+   "lista": 2,
+   "activo": true
+  },
+  {
+   "vendedor": "juancarlos",
+   "lista": 3,
+   "activo": true
+  },
+  {
+   "vendedor": "juancarlos",
+   "lista": 4,
+   "activo": true
+  },
+  {
+   "vendedor": "juancarlos",
+   "lista": 5,
+   "activo": true
+  },
+  {
+   "vendedor": "yadira",
+   "lista": 3,
+   "activo": true
+  },
+  {
+   "vendedor": "yadira",
+   "lista": 4,
+   "activo": true
+  },
+  {
+   "vendedor": "detal",
+   "lista": 5,
+   "activo": true
+  }
+ ],
+ "banners": [
+  {
+   "orden": 1,
+   "imagen": "banner-1.jpg",
+   "titulo": "EJEMPLO Promoción de temporada",
+   "desde": "2026-11-25",
+   "hasta": "2026-12-05",
+   "activo": true
+  }
+ ]
+}
