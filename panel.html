@@ -345,6 +345,13 @@ function vistaAjustes(){
     var guardar=function(clave,id){return function(e){e.preventDefault();api('guardarAjuste',{clave:clave,valor:$(id).value},nuevaLlave()).then(function(x){toast((x&&x.message)||'No se pudo')})}};
     $('#fW').onsubmit=guardar('whatsapp_detal','#aWa');$('#fM').onsubmit=guardar('pedido_minimo','#aMin');$('#fU').onsubmit=guardar('pocas_unidades','#aPoc');
     $('#fC').onsubmit=function(e){e.preventDefault();api('cambiarPin',{actual:$('#cA').value,nuevo:$('#cN').value},nuevaLlave()).then(function(x){toast((x&&x.message)||'No se pudo');if(x&&x.ok){$('#cA').value='';$('#cN').value=''}})};
+    api('estadoDespertador',{}).then(function(d){
+      if(!d||!d.ok)return;
+      var txt=d.ultimo?('Último aviso hace '+d.haceMin+' min · '+d.catalogos+' catálogos listos · '+d.ms+' ms'):'Todavía no ha corrido.';
+      var cont=document.createElement('div');cont.className='card';
+      cont.innerHTML='<b>Despertador del catálogo</b> <span class="pill '+(d.activo?'p-APROBADO':'p-RECHAZADO')+'">'+(d.activo?'activo':'apagado')+'</span><div class="mut">Mantiene los catálogos listos para que el primer cliente no espere. Corre cada 5 minutos, de lunes a sábado de 5:00 a 21:00.</div><div class="mut" style="margin-top:6px">'+esc(txt)+(d.activo?'':' · Se enciende ejecutando ACTIVAR_DESPERTADOR() en Apps Script.')+'</div>';
+      $('#app').appendChild(cont);
+    });
   });
 }
 
