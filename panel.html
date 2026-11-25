@@ -512,11 +512,11 @@ input[type=file]::file-selector-button{border:0;border-radius:99px;background:li
     <div class="user" id="acc" hidden>
       <div class="who"><div class="av" id="av" aria-hidden="true">K</div><div class="tt"><b id="uNom">Kevin</b><small id="quien">Acceso con PIN</small></div></div>
       <button type="button" class="estado js-act" data-e="ok" aria-label="Estado de los datos. Tocar para actualizar"><i class="pt" aria-hidden="true"></i><span class="et">Al día</span><span class="ed"></span></button>
-      <div class="ub"><button type="button" class="js-act"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg>Actualizar</button><button type="button" class="js-nov" aria-label="Novedades" title="Novedades"><svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg><span class="dotn" hidden></span></button><button type="button" class="js-salir"><svg class="ic" aria-hidden="true"><use href="#i-salir"/></svg>Salir</button></div>
+      <div class="ub"><button type="button" class="js-nov" aria-label="Novedades" title="Novedades"><svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg><span class="dotn" hidden></span></button><button type="button" class="js-salir"><svg class="ic" aria-hidden="true"><use href="#i-salir"/></svg>Salir</button></div>
     </div>
   </aside>
   <div class="cont">
-    <header class="mtop"><div class="mark" aria-hidden="true">DS</div><div class="tt"><b>Panel<span class="nm"> Distrisander</span></b><small class="quien2">Acceso con PIN</small></div><button type="button" class="estado js-act" data-e="ok" aria-label="Estado de los datos. Tocar para actualizar"><i class="pt" aria-hidden="true"></i><span class="et">Al día</span><span class="ed"></span></button><button type="button" class="icono js-busca" aria-label="Buscar"><svg class="ic" aria-hidden="true"><use href="#i-buscar"/></svg></button><button type="button" class="icono js-act" aria-label="Actualizar"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg></button></header>
+    <header class="mtop"><div class="mark" aria-hidden="true">DS</div><div class="tt"><b>Panel<span class="nm"> Distrisander</span></b><small class="quien2">Acceso con PIN</small></div><button type="button" class="estado js-act" data-e="ok" aria-label="Estado de los datos. Tocar para actualizar"><i class="pt" aria-hidden="true"></i><span class="et">Al día</span><span class="ed"></span></button><button type="button" class="icono js-busca" aria-label="Buscar"><svg class="ic" aria-hidden="true"><use href="#i-buscar"/></svg></button></header>
     <main id="app" tabindex="-1"></main>
   </div>
 </div>
@@ -678,7 +678,7 @@ function vistaPrimera(){
     }).catch(function(){$('#pErr').innerHTML='<div class="err">No pudimos conectar.</div>'});
   });
 }
-function salir(){api('cerrarSesion',{}).catch(function(){});S.token='';S.productos=null;S.pedidos=[];S.vendedores=[];try{localStorage.removeItem('ds_panel')}catch(e){}vistaLogin()}
+function salir(){api('cerrarSesion',{}).catch(function(){});S.token='';S.productos=null;S.pedidos=[];S.vendedores=[];ZONAS={};try{localStorage.removeItem('ds_panel')}catch(e){}vistaLogin()}
 
 /* ——— Estructura ——— */
 var MENU=[['pedidos','Pedidos','i-pedidos','Aprueba y sigue cada pedido','op'],['productos','Productos','i-productos','Catálogo, precios y existencias','op'],['stock','Stock','i-stock','Carga semanal y restock','op','admin'],
@@ -696,6 +696,7 @@ function arrancar(){
   pintarEstado();pintarNov();
   Promise.all([cargarVendedores(),cargarPedidos()]).then(function(){VISTOS=pendientes();pintarTabs();vista()});
   pintarTabs();vista();
+  cargarZonas().then(function(cambio){if(cambio&&$('#ov').hidden&&['productos','reportes','enlaces','ajustes'].indexOf(S.tab)>=0)vista()});
   var visto='1';try{visto=localStorage.getItem('ds_tour')}catch(e){}
   if(!visto&&!/[?&]pruebas=1/.test(location.search))setTimeout(recorrido,1200);
 }
@@ -717,9 +718,14 @@ function pintarTabs(){
   document.title=(n?'('+n+') ':'')+'Panel Distrisander';      // la pestaña del navegador avisa cuántos pedidos esperan
 }
 function animarVista(){var a=$('#app');a.classList.add('anim');clearTimeout(a._t);a._t=setTimeout(function(){a.classList.remove('anim')},1000)}
-var VERSION_PANEL='2026.11.10',SERVIDOR_MIN='2026.11.9';
+var VERSION_PANEL='2026.11.11',SERVIDOR_MIN='2026.11.10';
 /* Historial de cambios: cada entrega agrega aquí su entrada (la más nueva primero). Tipos: nuevo · mejora · arreglo */
 var CAMBIOS=[
+ {v:'2026.11.11',f:'25 de noviembre de 2026',t:'Zonas y listas de precios',items:[
+  ['nuevo','Ajustes → Zonas y listas: ponle nombre a cada lista («Zona 1») y escribe las ciudades que cubre.'],
+  ['nuevo','Ajustar los precios de una lista por porcentaje, con vista previa antes de aplicar.'],
+  ['mejora','El nombre de cada zona se ve en enlaces, productos, reportes y en el modo asesor del catálogo.'],
+  ['mejora','Una sola forma de actualizar: la píldora de estado (se quitaron los botones repetidos).']]},
  {v:'2026.11.10',f:'25 de noviembre de 2026',t:'Avisos, buscador y reportes comparativos',items:[
   ['nuevo','Buscador general: Ctrl + K (o la lupa) encuentra pedidos, productos y vendedores, y salta a cualquier sección.'],
   ['nuevo','Aprobar varios pedidos a la vez: «Seleccionar varios» en Por aprobar.'],
@@ -1172,6 +1178,55 @@ function formPin(id){
 }
 
 /* ——— Ajustes ——— */
+function editarZonas(){
+  var h='<div class="row"><h2 class="g" style="margin:0">Zonas y listas</h2><button class="btn s mini" id="cerrX" type="button">Cerrar</button></div>'
+    +'<p class="mut">Cada lista tiene un nombre (por ejemplo «Zona 1») y las ciudades que cubre. Separa las ciudades con comas. Los precios de cada lista se cambian aparte.</p><form class="fld" id="fZ" novalidate>';
+  [1,2,3,4,5].forEach(function(l){var z=ZONAS[l]||{nombre:LISTAS[l],ciudades:[]};
+    h+='<div class="card"><label>Lista '+l+' · nombre<input id="zN'+l+'" value="'+esc(z.nombre)+'" maxlength="40" autocomplete="off"></label><label>Ciudades<textarea id="zC'+l+'" rows="2" maxlength="900" placeholder="Ej. Bucaramanga, Floridablanca, Girón">'+esc((z.ciudades||[]).join(', '))+'</textarea></label></div>'});
+  h+='<div id="zErr" role="alert"></div><div class="acciones"><button class="btn ok" type="submit">Guardar zonas</button><button class="btn s" id="zNo" type="button">Cancelar</button></div></form>';
+  modal(h);
+  $('#zNo').onclick=cerrar;
+  $('#fZ').onsubmit=function(e){
+    e.preventDefault();
+    var zonas={};[1,2,3,4,5].forEach(function(l){zonas[l]={nombre:$('#zN'+l).value,ciudades:$('#zC'+l).value}});
+    var b=this.querySelector('[type=submit]');b.disabled=true;
+    api('guardarZonas',{zonas:zonas},nuevaLlave()).then(function(r){
+      if(!r||!r.ok){b.disabled=false;$('#zErr').innerHTML='<div class="err">'+esc((r&&r.message)||'No se pudo guardar')+'</div>';SON.error();return}
+      aplicarZonas(r.zonas);cerrar();toast('Zonas guardadas');if(S.tab==='ajustes')vistaAjustes();else vista();
+    }).catch(function(){b.disabled=false;$('#zErr').innerHTML='<div class="err">No pudimos conectar.</div>'});
+  };
+}
+function ajustarPrecios(l){
+  var z=ZONAS[l]||{nombre:LISTAS[l]};
+  modal('<div class="row"><h2 class="g" style="margin:0">Ajustar precios</h2><button class="btn s mini" id="cerrX" type="button">Cerrar</button></div>'
+    +'<p class="mut">Lista '+l+' · <b>'+esc(z.nombre)+'</b>. Sube o baja todos los precios de esta lista por un porcentaje. Primero ves cómo quedarían; no se cambia nada hasta que confirmes.</p>'
+    +'<form class="fld" id="fP" novalidate><div class="two"><label>Cambio en %<input id="pPct" inputmode="decimal" placeholder="Ej. 5 para subir, -3 para bajar" autocomplete="off"></label>'
+    +'<label>Redondear a<select id="pRed"><option value="1">Sin redondeo</option><option value="10">10 pesos</option><option value="50">50 pesos</option><option value="100" selected>100 pesos</option><option value="500">500 pesos</option><option value="1000">1.000 pesos</option></select></label></div>'
+    +'<div id="pRes" aria-live="polite"></div><div class="acciones"><button class="btn" id="pVer" type="submit">Ver cómo quedaría</button><button class="btn ok" id="pAp" type="button" hidden>Aplicar</button><button class="btn s" id="pNo" type="button">Cancelar</button></div></form>');
+  $('#pNo').onclick=cerrar;
+  var datos=function(modo){return {lista:l,porcentaje:$('#pPct').value,redondeo:$('#pRed').value,modo:modo}};
+  var reset=function(){$('#pAp').hidden=true;$('#pRes').innerHTML=''};
+  $('#pPct').oninput=reset;$('#pRed').onchange=reset;
+  $('#fP').onsubmit=function(e){
+    e.preventDefault();reset();var b=$('#pVer');b.disabled=true;
+    api('ajustarPreciosLista',datos('validar')).then(function(r){
+      b.disabled=false;
+      if(!r||!r.ok){$('#pRes').innerHTML='<div class="err">'+esc((r&&r.message)||'No se pudo calcular')+'</div>';return}
+      var ej=r.ejemplos.map(function(x){return '<tr><td>'+esc(titulo(x.nombre))+'<div class="mut">'+esc(x.codigo)+'</div></td><td class="r">'+cop(x.antes)+'</td><td class="r"><b>'+cop(x.despues)+'</b></td></tr>'}).join('');
+      $('#pRes').innerHTML='<div class="card"><b>'+r.cambian+(r.cambian===1?' precio cambia':' precios cambian')+'</b> ('+(r.porcentaje>0?'+':'')+r.porcentaje+' %)'+(r.sinPrecio?'<div class="mut">'+r.sinPrecio+' productos sin precio en esta lista no se tocan.</div>':'')
+        +(ej?'<table><thead><tr><th>Producto</th><th class="r">Antes</th><th class="r">Después</th></tr></thead><tbody>'+ej+'</tbody></table>'+(r.cambian>r.ejemplos.length?'<div class="mut">…y '+(r.cambian-r.ejemplos.length)+' más.</div>':''):'')+'</div>'
+        +(r.cambian?'<p class="mut">Esto cambia los precios en la hoja y el catálogo los muestra enseguida. Para devolverlos, aplica el porcentaje contrario (con redondeo puede no quedar exacto).</p>':'');
+      if(r.cambian){var a=$('#pAp');a.hidden=false;a.textContent='Aplicar a '+r.cambian+' precios'}
+    }).catch(function(){b.disabled=false;$('#pRes').innerHTML='<div class="err">No pudimos conectar.</div>'});
+  };
+  $('#pAp').onclick=function(){
+    var a=this;a.disabled=true;$('#pVer').disabled=true;
+    api('ajustarPreciosLista',datos('aplicar'),nuevaLlave()).then(function(r){
+      if(!r||!r.ok||!r.aplicado){a.disabled=false;$('#pVer').disabled=false;$('#pRes').innerHTML='<div class="err">'+esc((r&&r.message)||'No se pudo aplicar')+'</div>';SON.error();return}
+      S.productos=null;cerrar();toast(r.message);SON.ok();
+    }).catch(function(){a.disabled=false;$('#pVer').disabled=false;$('#pRes').innerHTML='<div class="err">No pudimos conectar.</div>'});
+  };
+}
 function vistaAjustes(){
   $('#app').innerHTML='<h2>Ajustes</h2><div class="skl" role="status" aria-label="Cargando"><i></i><i></i><i></i></div>';
   api('leerAjustes',{}).then(function(r){
@@ -1187,6 +1242,9 @@ function vistaAjustes(){
         +fila('fDV','Por volumen: desde','Unidades de un mismo producto. No aplica a productos por caja.','aDV',r.descuento_volumen_desde,'unid.')
         +fila('fDP','Por volumen: porcentaje','Descuento sobre esa línea.','aDP',r.descuento_volumen_pct,'%')
         +fila('fPP','Pronto pago Kerasolis','Si paga el mismo día de la entrega.','aPP',r.descuento_pronto_pago_kerasolis_pct,'%')+'</div>'
+      +'<div class="card aj"><h3>Zonas y listas de precios</h3><div class="mut">Ponle nombre a cada lista y escribe las ciudades que cubre. El nombre se ve en enlaces, productos, reportes y pedidos.</div>'
+        +[1,2,3,4,5].map(function(l){var z=ZONAS[l]||{nombre:LISTAS[l],ciudades:[]},cs=z.ciudades||[];return '<div class="fila"><div class="g"><b>Lista '+l+' · '+esc(z.nombre)+'</b><div class="mut">'+(cs.length?esc(cs.slice(0,4).join(', '))+(cs.length>4?' y '+(cs.length-4)+' más':''):'Sin ciudades escritas')+'</div></div><button class="btn s mini" data-pl="'+l+'" type="button">Ajustar precios</button></div>'}).join('')
+        +'<div class="acciones" style="position:static;background:none;padding:10px 0 0"><button class="btn" id="zEdit" type="button">Editar nombres y ciudades</button></div></div>'
       +'<div class="card aj"><h3>Cambiar mi PIN</h3><div class="mut">Lleva de 4 a 6 números. Al cambiarlo se cierran tus otras sesiones.</div><form class="fld" id="fC"><div class="two"><label>PIN actual<input id="cA" type="password" inputmode="numeric" maxlength="6" autocomplete="current-password"></label><label>PIN nuevo<input id="cN" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password"></label></div><button class="btn mini" type="submit" style="justify-self:start">Cambiar PIN</button></form></div>'
       +'<div class="card aj"><h3>Avisos y sonido</h3><div class="mut">Cuando llega un pedido nuevo. Los avisos del navegador funcionan mientras el panel esté abierto, aunque estés en otra pestaña.</div>'
         +'<div class="fila"><div class="g"><b>Avisos del navegador</b><div class="mut" id="avEst"></div></div><button class="btn mini" id="avBtn" type="button"></button></div>'
@@ -1203,6 +1261,8 @@ function vistaAjustes(){
     };
     pintarPref();
     $('#ajAyuda').onclick=ayuda;$('#ajTour').onclick=recorrido;
+    $('#zEdit').onclick=editarZonas;
+    document.querySelectorAll('[data-pl]').forEach(function(b){b.onclick=function(){ajustarPrecios(Number(b.dataset.pl))}});
     $('#avBtn').onclick=function(){if(avisosActivos()){PREF.avisos=false;guardarPref();pintarPref()}else pedirAvisos().then(pintarPref)};
     $('#sonBtn').onclick=function(){PREF.sonido=!PREF.sonido;guardarPref();pintarPref();if(PREF.sonido)SON.prueba()};
     $('#sonPrueba').onclick=function(){var v=PREF.sonido;PREF.sonido=true;SON.prueba();PREF.sonido=v};
@@ -1324,6 +1384,18 @@ function revisarRestock(){
 
 /* ——— Productos y precios ——— */
 var NOMBRE_LISTA={1:'Bucaramanga',2:'Sábana y pueblos',3:'Pamplona/Cúcuta',4:'Arauca/Tibú',5:'Detal'};
+var ZONAS={};
+/* Nombres y ciudades de las 5 listas (los define el gerente en Ajustes): todo el panel los usa */
+function aplicarZonas(z){
+  ZONAS=z||{};
+  Object.keys(ZONAS).forEach(function(l){LISTAS[l]=ZONAS[l].nombre;NOMBRE_LISTA[l]=ZONAS[l].nombre});
+}
+function cargarZonas(){
+  return api('leerZonas',{}).then(function(r){
+    if(r&&r.ok){var antes=JSON.stringify(ZONAS);aplicarZonas(r.zonas);return antes!==JSON.stringify(ZONAS)}
+    return false;
+  }).catch(function(){return false});
+}
 function problemasProd(p){
   var pr=[];
   if(!p.activo)return pr;

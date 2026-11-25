@@ -700,6 +700,7 @@ function misEnlaces(){
   api('listarEnlaces',{}).then(function(r){
     if(!r||!r.ok){$('#meLista').innerHTML=(r&&r.pinRequerido)?'':'No se pudieron cargar tus enlaces.';return}
     $('#meLista').className='';
+    if(r.zonas)Object.keys(r.zonas).forEach(function(l){LISTAS[l]=r.zonas[l].nombre});
     var base=location.origin+location.pathname.replace(/[^\/]*$/,'')+'index.html?k=';
     $('#meLista').innerHTML=r.enlaces.length?r.enlaces.map(function(e){
       return '<div class="mp'+(e.activo?'':' off')+'"><b>Lista '+esc(e.lista)+'</b> · '+esc(LISTAS[e.lista]||'')+(e.activo?'':' <span class="pill p-RECHAZADO">desactivado</span>')+'<div class="url">'+esc(base+e.clave)+'</div><button class="sec" data-cop="'+esc(base+e.clave)+'" type="button" style="margin-top:4px">Copiar enlace</button></div>'}).join(''):'<div class="empty">Todavía no tienes enlaces. Pídele uno a Juan Carlos.</div>';
