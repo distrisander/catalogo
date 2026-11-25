@@ -358,12 +358,43 @@ input[type=file]::file-selector-button{border:0;border-radius:99px;background:li
 @media(max-width:640px){.vend{grid-template-columns:auto minmax(0,1fr);align-items:start}.vend .acc{grid-column:1/-1;justify-content:flex-start;border-top:1px solid var(--line);padding-top:12px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* Píldora de estado: al día · actualizando · cargando · sin conexión · error (se toca para actualizar) */
+.estado{display:inline-flex;align-items:center;gap:8px;border-radius:99px;padding:0 14px 0 12px;min-height:36px;font-size:.78125rem;font-weight:600;border:1px solid #4a4333;background:rgba(255,255,255,.06);color:#efe6d0;white-space:nowrap;max-width:100%}
+.estado .pt{width:9px;height:9px;border-radius:50%;background:#58c27a;flex:none}
+/* El punto está quieto; solo hace un destello corto cuando de verdad llegó una actualización */
+.estado.recien .pt{animation:ping 1.2s ease-out 1}
+@keyframes ping{0%{box-shadow:0 0 0 0 rgba(88,194,122,.6)}100%{box-shadow:0 0 0 8px rgba(88,194,122,0)}}
+.estado .ed{color:#cfc7b4;font-weight:500}
+.estado[data-e="act"] .pt,.estado[data-e="carga"] .pt{width:13px;height:13px;border:2px solid #f1d78e;border-right-color:transparent;background:none;box-shadow:none;animation:gira .7s linear infinite}
+.estado[data-e="sin"] .pt{background:#e5a13a;animation:none}
+.estado[data-e="err"] .pt{background:#ef8b7b;animation:none}
+.estado[data-e="sin"],.estado[data-e="err"]{border-color:#8a6a2c}
+.estado:active{transform:scale(.97)}
+@media(hover:hover) and (pointer:fine){.estado:hover{border-color:var(--gold)}}
+.user .estado{width:100%;justify-content:center;margin-top:12px}
+.mtop .estado{min-height:34px;padding:0 10px}
+.mtop .estado .ed{display:none}
+@media(max-width:399px){.mtop .estado .et{display:none}.mtop .estado{padding:0 12px}.mtop .tt .nm{display:none}}
+.mtop .tt b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dotn{position:absolute;top:7px;right:9px;width:9px;height:9px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 2px #151311}
+.user .ub .js-nov{flex:0 0 44px;position:relative}
+/* Ventana de novedades (qué cambió) */
+.rel{padding:16px 18px;margin-top:12px}
+.rel h3{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin:0}
+.rel .v{font:700 .8125rem var(--body);background:var(--gold-l);color:var(--gold-d);padding:2px 10px;border-radius:99px}
+.rel .f{color:var(--mut);font-size:.8125rem;margin:2px 0 6px}
+.rel ul{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:9px}
+.rel li{display:grid;grid-template-columns:70px minmax(0,1fr);gap:10px;align-items:start;line-height:1.45}
+.tg{font-size:.6875rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-radius:6px;padding:3px 0;text-align:center}
+.tg.nuevo{background:var(--ok-bg);color:var(--ok)}.tg.mejora{background:#e3ecf7;color:#1f3f66}.tg.arreglo{background:var(--warn-bg);color:var(--warn)}
 </style>
 </head>
 <body>
 <a class="skip" href="#app">Saltar al contenido</a>
 <div class="progreso" aria-hidden="true"></div>
 <div class="sinred" id="sinred" role="status">Sin conexión: se reintenta solo</div>
+<span class="sr" id="estadoSR" role="status" aria-live="polite"></span>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
 <symbol id="i-pedidos" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></symbol>
 <symbol id="i-productos" viewBox="0 0 24 24"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></symbol>
@@ -406,11 +437,12 @@ input[type=file]::file-selector-button{border:0;border-radius:99px;background:li
     <nav id="nav" aria-label="Secciones del panel" hidden><div id="tabs"></div></nav>
     <div class="user" id="acc" hidden>
       <div class="who"><div class="av" id="av" aria-hidden="true">K</div><div class="tt"><b id="uNom">Kevin</b><small id="quien">Acceso con PIN</small></div></div>
-      <div class="ub"><button type="button" class="js-act"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg>Actualizar</button><button type="button" class="js-salir"><svg class="ic" aria-hidden="true"><use href="#i-salir"/></svg>Salir</button></div>
+      <button type="button" class="estado js-act" data-e="ok" aria-label="Estado de los datos. Tocar para actualizar"><i class="pt" aria-hidden="true"></i><span class="et">Al día</span><span class="ed"></span></button>
+      <div class="ub"><button type="button" class="js-act"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg>Actualizar</button><button type="button" class="js-nov" aria-label="Novedades" title="Novedades"><svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg><span class="dotn" hidden></span></button><button type="button" class="js-salir"><svg class="ic" aria-hidden="true"><use href="#i-salir"/></svg>Salir</button></div>
     </div>
   </aside>
   <div class="cont">
-    <header class="mtop"><div class="mark" aria-hidden="true">DS</div><div class="tt"><b>Panel Distrisander</b><small class="quien2">Acceso con PIN</small></div><button type="button" class="icono js-act" aria-label="Actualizar"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg></button><button type="button" class="icono js-salir" aria-label="Salir"><svg class="ic" aria-hidden="true"><use href="#i-salir"/></svg></button></header>
+    <header class="mtop"><div class="mark" aria-hidden="true">DS</div><div class="tt"><b>Panel<span class="nm"> Distrisander</span></b><small class="quien2">Acceso con PIN</small></div><button type="button" class="estado js-act" data-e="ok" aria-label="Estado de los datos. Tocar para actualizar"><i class="pt" aria-hidden="true"></i><span class="et">Al día</span><span class="ed"></span></button><button type="button" class="icono js-act" aria-label="Actualizar"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg></button><button type="button" class="icono js-salir" aria-label="Salir"><svg class="ic" aria-hidden="true"><use href="#i-salir"/></svg></button></header>
     <main id="app" tabindex="-1"></main>
   </div>
 </div>
@@ -446,10 +478,27 @@ function api(action,data,idem){
       .catch(function(e){clearTimeout(t);if(intento<3&&navigator.onLine!==false&&(!idem?isRead(action):true))return pausa(900*intento).then(una);throw e});
   }
   ocupar(1);
-  return una().then(function(j){ocupar(-1);if(j&&j.pinRequerido&&S.token){sesionVencida()}return j},function(e){ocupar(-1);throw e});
+  return una().then(function(j){EST.ult=Date.now();EST.error=false;ocupar(-1);if(j&&j.pinRequerido&&S.token){sesionVencida()}return j},function(e){EST.error=true;ocupar(-1);throw e});
 }
 var OCUP=0,T_OCUP=null;
-function ocupar(d){OCUP=Math.max(0,OCUP+d);clearTimeout(T_OCUP);if(OCUP>0)T_OCUP=setTimeout(function(){document.body.classList.add('ocupado')},250);else document.body.classList.remove('ocupado')}
+function ocupar(d){OCUP=Math.max(0,OCUP+d);clearTimeout(T_OCUP);if(OCUP>0)T_OCUP=setTimeout(function(){document.body.classList.add('ocupado');pintarEstado()},250);else{document.body.classList.remove('ocupado');pintarEstado()}}
+/* Píldora de estado: refleja si los datos están al día, se están actualizando, cargando, sin conexión o con error */
+var EST={ult:0,refresh:false,error:false};
+function hace(t){var m=Math.floor((Date.now()-t)/60000);return m<1?'ahora':m===1?'hace 1 min':m<60?'hace '+m+' min':'hace más de 1 h'}
+function pintarEstado(){
+  var e='ok',txt='Al día',det=EST.ult?hace(EST.ult):'';
+  if(navigator.onLine===false){e='sin';txt='Sin conexión';det='se reintenta solo'}
+  else if(EST.refresh){e='act';txt='Actualizando…';det=''}
+  else if(OCUP>0&&document.body.classList.contains('ocupado')){e='carga';txt='Cargando…';det=''}
+  else if(EST.error){e='err';txt='No se pudo actualizar';det='tocar para reintentar'}
+  document.querySelectorAll('.estado').forEach(function(b){
+    if(e==='ok'&&b._u&&b._u!==EST.ult){b.classList.add('recien');setTimeout(function(){b.classList.remove('recien')},1300)}b._u=EST.ult;
+    b.dataset.e=e;b.querySelector('.et').textContent=txt;b.querySelector('.ed').textContent=det;
+    b.title=EST.ult?'Última actualización: '+new Date(EST.ult).toLocaleTimeString('es-CO'):'Todavía no se ha actualizado';
+  });
+  var sr=document.getElementById('estadoSR');if(sr&&sr._e!==e){sr._e=e;sr.textContent=txt}
+}
+setInterval(pintarEstado,20000);
 function isRead(a){return /^(listar|leer|miSesion|estado|catalogo)/.test(a)}
 function sinT(t){return String(t||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')}
 /* Un nombre que viene TODO en mayúsculas (como sale de Factusol) se muestra «Con Iniciales»; uno ya escrito con minúsculas se respeta. */
@@ -566,6 +615,7 @@ function arrancar(){
   var nom=S.usuario==='kevin'?'Kevin':S.usuario==='juancarlos'?'Juan Carlos':S.usuario;
   $('#uNom').textContent=nom;$('#quien').textContent=ROLES[S.rol]||S.rol;$('#av').textContent=nom.charAt(0).toUpperCase();
   document.querySelectorAll('.quien2').forEach(function(e){e.textContent=nom+' · '+(ROLES[S.rol]||S.rol)});
+  pintarEstado();pintarNov();
   Promise.all([cargarVendedores(),cargarPedidos()]).then(function(){VISTOS=pendientes();pintarTabs();vista()});
   pintarTabs();vista();
 }
@@ -587,6 +637,44 @@ function pintarTabs(){
   document.title=(n?'('+n+') ':'')+'Panel Distrisander';      // la pestaña del navegador avisa cuántos pedidos esperan
 }
 function animarVista(){var a=$('#app');a.classList.add('anim');clearTimeout(a._t);a._t=setTimeout(function(){a.classList.remove('anim')},1000)}
+var VERSION_PANEL='2026.11.9';
+/* Historial de cambios: cada entrega agrega aquí su entrada (la más nueva primero). Tipos: nuevo · mejora · arreglo */
+var CAMBIOS=[
+ {v:'2026.11.9',f:'25 de noviembre de 2026',t:'Panel renovado y pedidos editables',items:[
+  ['nuevo','Estado de los datos en pantalla: «Al día», «Actualizando…», «Cargando…» o «Sin conexión».'],
+  ['nuevo','Esta ventana de novedades.'],
+  ['nuevo','Editar un pedido: cambia cantidades, quita o agrega productos, con vista previa y motivo.'],
+  ['nuevo','Aviso de pedido nuevo en cualquier sección, con el contador en la pestaña del navegador.'],
+  ['mejora','Panel rediseñado: menú lateral en escritorio, barra inferior en celular y resumen de cifras en Pedidos.'],
+  ['mejora','Ventanas que se cierran arrastrando (celular), botones de acción siempre visibles y textos más claros.'],
+  ['mejora','Accesibilidad: contraste alto, foco visible y movimiento apagado si el celular lo pide.'],
+  ['arreglo','Franja vacía y menú cortado al desplazar en ventanas bajitas.'],
+  ['arreglo','En el catálogo, un toque en «Agregar» ya no suma dos, y al cambiar una cantidad no se pierde lo escrito en el pedido.']]},
+ {v:'2026.11.8',f:'25 de noviembre de 2026',t:'Descuentos de referencia ajustados',items:[
+  ['mejora','El 5 % por volumen ya no aplica a los productos que se venden por caja (sachets y ampollas).'],
+  ['mejora','El pronto pago de Kerasolis se explica como «el mismo día de la entrega».']]},
+ {v:'2026.11.7',f:'25 de noviembre de 2026',t:'Stock, respaldo y marcas',items:[
+  ['nuevo','Restock: suma mercancía nueva sin reiniciar el stock, con vista previa (3 al mes incluidos).'],
+  ['nuevo','Respaldo automático de la hoja cada lunes y botón «Respaldar ahora».'],
+  ['nuevo','Marcas y banners: crea y apaga banners con fechas desde el panel.'],
+  ['nuevo','Descuentos de referencia en cada pedido, para facturar.'],
+  ['nuevo','Catálogo: «Repetir mi último pedido».'],
+  ['mejora','Enviar un pedido es más rápido.']]},
+ {v:'2026.11.6',f:'25 de noviembre de 2026',t:'Reportes, despertador e instalación',items:[
+  ['nuevo','Reportes de ventas por período, asesor, zona, marca, producto y cliente.'],
+  ['nuevo','Despertador: los catálogos abren rápido desde el primer cliente.'],
+  ['nuevo','Catálogo y panel instalables como app con el ícono DS.']]}
+];
+function pintarNov(){var v='';try{v=localStorage.getItem('ds_nov')||''}catch(e){}document.querySelectorAll('.dotn').forEach(function(d){d.hidden=(v===CAMBIOS[0].v)})}
+function novedades(){
+  try{localStorage.setItem('ds_nov',CAMBIOS[0].v)}catch(e){}pintarNov();
+  var tipo={nuevo:'Nuevo',mejora:'Mejora',arreglo:'Arreglo'};
+  modal('<div class="row"><h2 class="g" style="margin:0">Novedades</h2><button class="btn s mini" id="cerr" type="button">Cerrar</button></div>'
+    +'<div class="estado-linea" style="margin-top:2px"><span class="pill n" id="novSrv">Servidor: comprobando…</span><span class="pill n">Panel '+VERSION_PANEL+'</span></div>'
+    +CAMBIOS.map(function(r){return '<section class="card rel"><h3><span class="v">'+esc(r.v)+'</span>'+esc(r.t)+'</h3><div class="f">'+esc(r.f)+'</div><ul>'+r.items.map(function(i){return '<li><span class="tg '+i[0]+'">'+tipo[i[0]]+'</span><span>'+esc(i[1])+'</span></li>'}).join('')+'</ul></section>'}).join(''));
+  $('#cerr').onclick=cerrar;
+  api('ping',{}).then(function(r){var el=$('#novSrv');if(!el)return;if(r&&r.version){el.textContent='Servidor en vivo: '+r.version;el.className='pill '+(r.version===VERSION_PANEL?'o':'w')}else el.textContent='Servidor: sin respuesta'}).catch(function(){var el=$('#novSrv');if(el)el.textContent='Servidor: sin conexión'});
+}
 function irA(t){S.tab=t;animarVista();pintarTabs();vista();window.scrollTo(0,0)}
 /* Las cifras del resumen «cuentan» hasta su valor al entrar en la sección (no en las actualizaciones silenciosas) */
 function contar(){
@@ -598,7 +686,7 @@ function contar(){
     requestAnimationFrame(paso);
   });
 }
-function sinConexion(){var b=$('#sinred');if(b)b.classList.toggle('on',navigator.onLine===false)}
+function sinConexion(){var b=$('#sinred');if(b)b.classList.toggle('on',navigator.onLine===false);pintarEstado()}
 window.addEventListener('offline',sinConexion);window.addEventListener('online',function(){sinConexion();refrescarPedidos()});
 function firmaPedidos(){return S.pedidos.map(function(p){return p.id+p.estado+p.total+p.unidades}).join('|')}
 document.addEventListener('keydown',function(e){   // «/» lleva a la búsqueda (como en tiendas y paneles profesionales)
@@ -611,7 +699,8 @@ $('#bar').addEventListener('click',function(e){
   if(b.dataset.mas){
     var resto=menuVisible().slice(4);
     modal('<div class="row"><h2 class="g" style="margin:0">Más opciones</h2><button class="btn s mini" id="cerr" type="button">Cerrar</button></div><div class="mas">'
-      +resto.map(function(m){return '<button type="button" data-ir="'+m[0]+'" class="'+(S.tab===m[0]?'on':'')+'">'+iconoSvg(m[2])+'<span><b>'+m[1]+'</b><small>'+m[3]+'</small></span></button>'}).join('')+'</div>');
+      +resto.map(function(m){return '<button type="button" data-ir="'+m[0]+'" class="'+(S.tab===m[0]?'on':'')+'">'+iconoSvg(m[2])+'<span><b>'+m[1]+'</b><small>'+m[3]+'</small></span></button>'}).join('')
+      +'<button type="button" data-nov="1">'+iconoSvg('i-bell')+'<span><b>Novedades</b><small>Qué cambió en el panel y el catálogo</small></span></button></div>');
     $('#cerr').onclick=cerrar;return;
   }
   if(b.dataset.t)irA(b.dataset.t);
@@ -619,14 +708,18 @@ $('#bar').addEventListener('click',function(e){
 $('#sheet').addEventListener('click',function(e){
   var st=e.target.closest('[data-st]');
   if(st){var inp=document.querySelector('#sheet .qe[data-i="'+st.dataset.i+'"]');if(inp){inp.value=Math.max(0,(aNumero(inp.value)||0)+Number(st.dataset.st));inp.dispatchEvent(new Event('input',{bubbles:true}))}return}
-  if(e.target.closest('#cerrX')){cerrar();return}var b=e.target.closest('[data-ir]');if(b){cerrar();irA(b.dataset.ir)}});
+  if(e.target.closest('#cerrX')){cerrar();return}
+  if(e.target.closest('[data-nov]')){cerrar();setTimeout(novedades,270);return}
+  var b=e.target.closest('[data-ir]');if(b){cerrar();irA(b.dataset.ir)}});
 document.addEventListener('click',function(e){
   var ba=e.target.closest('.js-act');
   if(ba){
     document.querySelectorAll('.js-act').forEach(function(x){x.classList.add('girando')});
-    Promise.all([cargarVendedores(),cargarPedidos()]).then(function(){VISTOS=pendientes();pintarTabs();vista();toast('Todo al día')}).catch(function(){toast('No pudimos conectar')}).then(function(){document.querySelectorAll('.js-act').forEach(function(x){x.classList.remove('girando')})});
+    EST.refresh=true;pintarEstado();
+    Promise.all([cargarVendedores(),cargarPedidos()]).then(function(){VISTOS=pendientes();pintarTabs();vista();toast('Todo al día')}).catch(function(){EST.error=true;toast('No pudimos conectar')}).then(function(){EST.refresh=false;pintarEstado();document.querySelectorAll('.js-act').forEach(function(x){x.classList.remove('girando')})});
   }
   else if(e.target.closest('.js-salir'))salir();
+  else if(e.target.closest('.js-nov'))novedades();
 });
 function vista(){
   if(!S.token)return;
@@ -1283,7 +1376,8 @@ function pendientes(){var o={};S.pedidos.forEach(function(p){if(p.estado==='POR_
 function refrescarPedidos(){
   if(!S.token||document.visibilityState!=='visible'||!$('#ov').hidden)return;
   var antes=VISTOS||pendientes(),firma0=firmaPedidos();
-  cargarPedidos().then(function(){
+  EST.refresh=true;pintarEstado();
+  cargarPedidos().then(function(){EST.refresh=false;pintarEstado();
     var ahora=pendientes(),nuevos=Object.keys(ahora).filter(function(id){return !antes[id]});
     VISTOS=ahora;if(firmaPedidos()===firma0)return;      // nada cambió: no se repinta
     pintarTabs();
@@ -1292,7 +1386,7 @@ function refrescarPedidos(){
       toast(nuevos.length===1?'Llegó un pedido nuevo: '+ahora[nuevos[0]].negocio:'Llegaron '+nuevos.length+' pedidos nuevos');
       setTimeout(function(){nuevos.forEach(function(id){var el=document.querySelector('.pedido[data-id="'+id+'"]');if(el)el.classList.add('nuevo')})},60);
     }
-  }).catch(function(){});
+  }).catch(function(){EST.refresh=false;EST.error=true;pintarEstado()});
 }
 setInterval(refrescarPedidos,45000);
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')refrescarPedidos()});
