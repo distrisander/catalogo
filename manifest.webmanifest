@@ -2,7 +2,7 @@
   "id": "./index.html",
   "name": "Distrisander Cosméticos",
   "short_name": "Distrisander",
-  "description": "Catálogo digital de Distrisander Cosméticos",
+  "description": "Distrisander App: catálogo, pedidos y panel de gestión",
   "lang": "es",
   "start_url": "./index.html",
   "scope": "./",
