@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#111111">
 <meta name="color-scheme" content="light">
 <!-- Seguridad: la página solo habla con el servidor de Distrisander; fuentes de Google; nada de scripts externos -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="robots" content="noindex, nofollow">
 <meta name="description" content="Distrisander App: catálogo con precios de tu lista, stock al día y tu pedido listo en minutos.">
@@ -716,7 +716,7 @@ function exito(r,cli,pago,obs){
 var ESTADO={POR_APROBAR:'Por aprobar',APROBADO:'Aprobado',RECHAZADO:'Rechazado',ANULADO:'Anulado'};
 var LISTAS={1:'Bucaramanga y área',2:'Sábana de Torres y pueblos',3:'Pamplona, Cúcuta y área',4:'Arauca, Tibú y zona roja',5:'Detal'};
 function hoja(titulo,html){HOJA='otra';$('#stit').textContent=titulo;$('#cuerpo').innerHTML=html;mostrarHoja()}
-var VERSION_CAT='2026.11.16',ACT_PEND=false,ACT_T=0;
+var VERSION_CAT='2026.11.17',ACT_PEND=false,ACT_T=0;
 /* ¿Hay una versión nueva del catálogo en GitHub? Solo se avisa a quien está en modo asesor (botón Actualizar con un punto). */
 function revisarActualizacion(forzar){
   if(ACT_PEND||navigator.onLine===false||(!forzar&&Date.now()-ACT_T<600000))return;
