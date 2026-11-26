@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <meta name="robots" content="noindex,nofollow">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="no-referrer">
 <link rel="preconnect" href="https://script.google.com">
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
@@ -1673,7 +1673,7 @@ function vistaAjustes(){
 }
 
 /* ——— Stock (solo administrador): carga semanal de Factusol (reemplaza) o restock (suma) ——— */
-var XLSX_URL='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+var XLSX_URL='vendor/xlsx.full.min.js';
 function cargarXlsx(){return new Promise(function(ok,no){if(window.XLSX)return ok();var s=document.createElement('script');s.src=XLSX_URL;s.onload=ok;s.onerror=function(){no(new Error('No se pudo cargar el lector de Excel'))};document.head.appendChild(s)})}
 var FILAS=null,MODO_STOCK='semanal';
 /* Números como se escriben en Colombia: «1.200» son mil doscientos y «12,5» es doce y medio (un texto así no debe leerse como 1,2). */
