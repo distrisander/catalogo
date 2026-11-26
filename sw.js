@@ -4,7 +4,7 @@
    · Íconos, fotos y manifiestos: lo guardado primero, y se renuevan en segundo plano.
    · NUNCA toca otros orígenes (el servidor de Apps Script, las letras de Google): los pedidos y precios siempre van a la red.
    Cuando cambie este archivo o la lista de abajo, sube el número de VERSION. */
-const VERSION = '2026-11-25-2';
+const VERSION = '2026-11-25-3';
 const CACHE = 'ds-' + VERSION;
 const PRECACHE = ['index.html', 'panel.html', 'manifest.webmanifest', 'panel.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/panel-192.png', 'icons/favicon-64.png', 'fonts/inter-latin.woff2', 'fonts/playfair-latin.woff2'];
 

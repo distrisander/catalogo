@@ -220,6 +220,7 @@ footer{margin-top:44px;padding-block:28px;color:var(--mut);font-size:13px;text-a
 .vb span{margin-right:auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .vb i{font-style:normal;color:#b9b1a0}
 @media(max-width:439px){.vb i{display:none}.vb{gap:6px}.vb button{padding:0 12px}}
+.vb button.hay{border-color:var(--gold);color:#fff}.dotv{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--gold);margin-left:4px;vertical-align:middle}
 .vb2{padding-top:0;overflow-x:auto;scrollbar-width:none;flex-wrap:nowrap}.vb2::-webkit-scrollbar{display:none}.vb2 button{flex:none}
 .est-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.est-h h3{margin:0;font:600 20px var(--serif,Georgia,serif)}
 .meta{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;margin-top:12px}
@@ -707,6 +708,16 @@ function exito(r,cli,pago,obs){
 var ESTADO={POR_APROBAR:'Por aprobar',APROBADO:'Aprobado',RECHAZADO:'Rechazado',ANULADO:'Anulado'};
 var LISTAS={1:'Bucaramanga y área',2:'Sábana de Torres y pueblos',3:'Pamplona, Cúcuta y área',4:'Arauca, Tibú y zona roja',5:'Detal'};
 function hoja(titulo,html){HOJA='otra';$('#stit').textContent=titulo;$('#cuerpo').innerHTML=html;mostrarHoja()}
+var VERSION_CAT='2026.11.14',ACT_PEND=false,ACT_T=0;
+/* ¿Hay una versión nueva del catálogo en GitHub? Solo se avisa a quien está en modo asesor (botón Actualizar con un punto). */
+function revisarActualizacion(forzar){
+  if(ACT_PEND||navigator.onLine===false||(!forzar&&Date.now()-ACT_T<600000))return;
+  ACT_T=Date.now();
+  fetch('index.html?v='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).then(function(t){
+    var m=/VERSION_CAT='([^']+)'/.exec(t);
+    if(m&&m[1]!==VERSION_CAT&&m[1]>VERSION_CAT){ACT_PEND=true;barraVend();aviso('Hay una versión nueva del catálogo. Toca «Actualizar» en tu barra.')}
+  }).catch(function(){});
+}
 var INSTALADA=false;
 function estaInstalada(){return INSTALADA||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true}
 function barraVend(){
@@ -714,7 +725,7 @@ function barraVend(){
   if(!SES){b.hidden=true;b.innerHTML='';if(s)s.hidden=false;medir();return}
   if(s)s.hidden=true;b.hidden=false;
   b.innerHTML='<div class="wrap vb"><span><i>Asesor: </i><b>'+esc(SES.nombre||SES.usuario)+'</b></span><button data-v="out">Salir</button></div>'
-    +'<div class="wrap vb vb2"><button data-v="ped">Pedidos</button><button data-v="est">Estadísticas</button><button data-v="enl">Enlaces</button><button data-v="ref">Actualizar</button>'+(estaInstalada()?'':'<button data-v="inst">Instalar en tu celular</button>')+'</div>';
+    +'<div class="wrap vb vb2"><button data-v="ped">Pedidos</button><button data-v="est">Estadísticas</button><button data-v="enl">Enlaces</button><button data-v="ref" class="'+(ACT_PEND?'hay':'')+'">Actualizar'+(ACT_PEND?' <span class="dotv" aria-label="hay una versión nueva"></span>':'')+'</button>'+(estaInstalada()?'':'<button data-v="inst">Instalar en tu celular</button>')+'</div>';
   medir();
 }
 function loginVend(msg){
@@ -734,7 +745,7 @@ function enviarLogin(){
     if(!r||!r.ok){$('#vE').innerHTML='<div class="warn">'+esc((r&&r.message)||'No se pudo entrar.')+'</div>';return}
     if(r.rol!=='vendedor'){$('#vE').innerHTML='<div class="warn">Esta entrada es para asesores. Tú entras por el <a href="panel.html">panel</a>.</div>';return}
     SES={token:r.token,usuario:r.usuario,nombre:(CAT&&CAT.vendedorId===r.usuario)?CAT.vendedor:r.usuario};
-    guardar(K_VEND,SES);barraVend();cerrar();aviso('Hola, '+(SES.nombre||SES.usuario)+'. Ya puedes ver tus pedidos y tus enlaces.');
+    guardar(K_VEND,SES);barraVend();cerrar();setTimeout(function(){revisarActualizacion(true)},3000);aviso('Hola, '+(SES.nombre||SES.usuario)+'. Ya puedes ver tus pedidos y tus enlaces.');
   }).catch(function(){btn.disabled=false;btn.textContent='Entrar';$('#vE').innerHTML='<div class="warn">No pudimos conectar. Revisa tu internet.</div>'});
 }
 function marcarId(id){var el=document.getElementById(id);if(!el)return;el.classList.remove('mal');void el.offsetWidth;el.classList.add('mal');el.focus()}
@@ -758,6 +769,7 @@ function misEstadisticas(){
   }).catch(function(){$('#esCont').className='';$('#esCont').textContent='No pudimos conectar.'});
 }
 function refrescarCatalogo(){
+  if(ACT_PEND){aviso('Actualizando a la versión nueva…');try{navigator.serviceWorker.getRegistration().then(function(r){return r&&r.update()}).then(function(){location.reload()},function(){location.reload()})}catch(e){location.reload()}return}
   aviso('Actualizando…');
   try{if('serviceWorker' in navigator)navigator.serviceWorker.getRegistration().then(function(r){if(r)r.update()}).catch(function(){})}catch(e){}
   var pr=cargar();
@@ -787,7 +799,9 @@ function misEnlaces(){
 function salirVend(){api('cerrarSesion',{}).catch(function(){});SES=null;try{localStorage.removeItem(K_VEND)}catch(e){}barraVend();aviso('Saliste del modo asesor.')}
 try{SES=JSON.parse(localStorage.getItem(K_VEND)||'null')}catch(e){SES=null}
 barraVend();
-if(SES)api('miSesion',{}).catch(function(){});   // abrir el catálogo renueva la sesión del asesor: no vuelve a pedir el PIN si lo usa seguido
+if(SES){api('miSesion',{}).catch(function(){});setTimeout(function(){revisarActualizacion(true)},4000)}
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&SES)revisarActualizacion()});
+window.addEventListener('online',function(){if(SES)revisarActualizacion(true)});   // abrir el catálogo renueva la sesión del asesor: no vuelve a pedir el PIN si lo usa seguido
 $('#soyAsesor').addEventListener('click',function(){loginVend()});
 $('#vbar').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;if(b.dataset.v==='ped')misPedidos();else if(b.dataset.v==='enl')misEnlaces();else if(b.dataset.v==='est')misEstadisticas();else if(b.dataset.v==='ref')refrescarCatalogo();else if(b.dataset.v==='inst')$('#instalar').click();else if(b.dataset.v==='out')salirVend()});
 

@@ -89,14 +89,15 @@ main{padding:18px max(14px,env(safe-area-inset-left,0px)) 24px max(14px,env(safe
 @media(min-width:1024px){
   body{padding-bottom:0}
   .shell{display:grid;grid-template-columns:var(--lado) minmax(0,1fr);min-height:100vh;min-height:100dvh}
-  .side{align-self:start;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;height:100dvh;background:linear-gradient(180deg,#151311,#0d0c0a);color:#fff;padding:26px 16px 18px;overflow-y:auto;border-right:1px solid #26221a}
+  .side{align-self:start;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;height:100dvh;background:linear-gradient(180deg,#151311,#0d0c0a);color:#fff;padding:26px 16px 18px;overflow:hidden;border-right:1px solid #26221a}
   .mtop,.bar{display:none}
   main{padding:34px 40px 56px}
   .brand{display:flex;align-items:center;gap:12px;padding:0 8px 22px;border-bottom:1px solid #26221a;margin-bottom:14px}
   .brand .mark{width:46px;height:46px;font-size:1.0625rem}
   .brand b{display:block;font:600 1.25rem/1.1 var(--disp);letter-spacing:.01em}
   .brand small{display:block;color:#c9c1af;font-size:0.75rem;margin-top:3px}
-  .side nav{flex:1}
+  .side nav{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#3a3426 transparent}
+  .side .brand,.side .user{flex:none}
   .grp{margin:12px 8px 4px;font-size:0.6875rem;letter-spacing:.14em;text-transform:uppercase;color:#b3ab98;font-weight:600}
   .side nav button{width:100%;display:flex;align-items:center;gap:12px;border:0;background:none;color:#d9d1bf;padding:0 12px;min-height:40px;border-radius:12px;font-weight:500;text-align:left;position:relative}
   .side nav button .n{margin-left:auto}
@@ -372,6 +373,7 @@ input[type=file]::file-selector-button{border:0;border-radius:99px;background:li
 .estado .ed{color:#cfc7b4;font-weight:500}
 .estado[data-e="act"] .pt,.estado[data-e="carga"] .pt{width:13px;height:13px;border:2px solid #f1d78e;border-right-color:transparent;background:none;box-shadow:none;animation:gira .7s linear infinite}
 .estado[data-e="sin"] .pt{background:#e5a13a;animation:none}
+.estado[data-e="upd"]{border-color:#c9a24b;background:rgba(201,162,75,.16);cursor:pointer}.estado[data-e="upd"] .pt{background:#f1d78e;animation:none;box-shadow:0 0 0 4px rgba(241,215,142,.25)}.estado[data-e="upd"] .et{color:#f6dd9b}
 .estado[data-e="err"] .pt{background:#ef8b7b;animation:none}
 .estado[data-e="sin"],.estado[data-e="err"]{border-color:#8a6a2c}
 .estado:active{transform:scale(.97)}
@@ -607,18 +609,34 @@ function api(action,data,idem){
       .catch(function(e){clearTimeout(t);if(intento<3&&navigator.onLine!==false&&(!idem?isRead(action):true))return pausa(900*intento).then(una);throw e});
   }
   ocupar(1);
-  return una().then(function(j){EST.ult=Date.now();EST.error=false;ocupar(-1);if(j&&j.pinRequerido&&S.token){sesionVencida()}if(FALLAS.cola.length)setTimeout(enviarFallas,1200);return j},function(e){EST.error=true;ocupar(-1);if(navigator.onLine!==false&&action!=='reportarError')anotarFalla(action,'No se pudo conectar con el servidor ('+((e&&e.message)||e)+')','en línea: '+navigator.onLine);throw e});
+  return una().then(function(j){EST.ult=Date.now();EST.error=false;ocupar(-1);if(j&&j.pinRequerido&&S.token){sesionVencida()}if(FALLAS.cola.length)setTimeout(enviarFallas,1200);if(j&&j._srv){if(!UPD.srv0)UPD.srv0=j._srv;else if(j._srv!==UPD.srv0&&!UPD.pend){UPD.pend=true;UPD.motivo='servidor '+j._srv;pintarEstado()}}return j},function(e){EST.error=true;ocupar(-1);if(navigator.onLine!==false&&action!=='reportarError')anotarFalla(action,'No se pudo conectar con el servidor ('+((e&&e.message)||e)+')','en línea: '+navigator.onLine);throw e});
 }
 var OCUP=0,T_OCUP=null;
 function ocupar(d){OCUP=Math.max(0,OCUP+d);clearTimeout(T_OCUP);if(OCUP>0)T_OCUP=setTimeout(function(){document.body.classList.add('ocupado');pintarEstado()},250);else{document.body.classList.remove('ocupado');pintarEstado()}}
 /* Píldora de estado: refleja si los datos están al día, se están actualizando, cargando, sin conexión o con error */
 var EST={ult:0,refresh:false,error:false};
+/* Actualización pendiente: hay una versión nueva del panel (en GitHub) o el servidor cambió mientras estaba abierto. Al tocar la píldora se recarga. */
+var UPD={pend:false,srv0:null,motivo:'',t:0};
+function revisarActualizacion(forzar){
+  if(UPD.pend||navigator.onLine===false||(!forzar&&Date.now()-UPD.t<600000))return;
+  UPD.t=Date.now();
+  fetch('panel.html?v='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).then(function(t){
+    var m=/VERSION_PANEL='([^']+)'/.exec(t);
+    if(m&&verNum(m[1])>verNum(VERSION_PANEL)){UPD.pend=true;UPD.motivo='panel '+m[1];pintarEstado()}
+  }).catch(function(){});
+}
+if(/[?&]pruebas=1/.test(location.search))window.__resetUpd=function(){UPD.pend=false;UPD.srv0=null;UPD.t=0;pintarEstado()};   // solo para las pruebas de pantalla
+function aplicarActualizacion(){
+  var ir=function(){location.reload()};
+  try{navigator.serviceWorker.getRegistration().then(function(r){return r&&r.update()}).then(ir,ir)}catch(e){ir()}
+}
 function pintarEstado(){
   var e='ok',txt='Al día',det=EST.ult?hace(EST.ult):'';
   if(navigator.onLine===false){e='sin';txt='Sin conexión';det='se reintenta solo'}
   else if(EST.refresh){e='act';txt='Actualizando…';det=''}
   else if(OCUP>0&&document.body.classList.contains('ocupado')){e='carga';txt='Cargando…';det=''}
   else if(EST.error){e='err';txt='No se pudo actualizar';det='tocar para reintentar'}
+  if(UPD.pend&&navigator.onLine!==false&&e==='ok'){e='upd';txt='Actualización disponible';det='tocar para actualizar'}
   document.querySelectorAll('.estado').forEach(function(b){
     if(e==='ok'&&b._u&&b._u!==EST.ult){b.classList.add('recien');setTimeout(function(){b.classList.remove('recien')},1300)}b._u=EST.ult;
     b.dataset.e=e;b.querySelector('.et').textContent=txt;b.querySelector('.ed').textContent=det;
@@ -746,6 +764,7 @@ function arrancar(){
   pintarEstado();pintarNov();
   Promise.all([cargarVendedores(),cargarPedidos()]).then(function(){VISTOS=pendientes();pintarTabs();vista()});
   pintarTabs();vista();
+  setTimeout(function(){revisarActualizacion(true)},3000);
   cargarZonas().then(function(cambio){if(cambio&&$('#ov').hidden&&['productos','reportes','enlaces','ajustes'].indexOf(S.tab)>=0)vista()});
   var visto='1';try{visto=localStorage.getItem('ds_tour')}catch(e){}
   if(!visto&&!/[?&]pruebas=1/.test(location.search))setTimeout(recorrido,1200);
@@ -768,9 +787,14 @@ function pintarTabs(){
   document.title=(n?'('+n+') ':'')+'Panel Distrisander';      // la pestaña del navegador avisa cuántos pedidos esperan
 }
 function animarVista(){var a=$('#app');a.classList.add('anim');clearTimeout(a._t);a._t=setTimeout(function(){a.classList.remove('anim')},1000)}
-var VERSION_PANEL='2026.11.13',SERVIDOR_MIN='2026.11.13';
+var VERSION_PANEL='2026.11.14',SERVIDOR_MIN='2026.11.14';
 /* Historial de cambios: cada entrega agrega aquí su entrada (la más nueva primero). Tipos: nuevo · mejora · arreglo */
 var CAMBIOS=[
+ {v:'2026.11.14',f:'25 de noviembre de 2026',t:'Fechas y menú lateral',items:[
+  ['arreglo','Las fechas de los pedidos ya no salen como «Wed Nov 25 2026 … GMT-0500»: siempre se ven como 25/11/2026 6:46 p. m. En todo el sistema (pedidos, reportes, registro).'],
+  ['arreglo','El menú lateral queda fijo: el usuario, «Al día» y «Salir» siempre se ven; solo las opciones del menú se desplazan si no caben.'],
+  ['nuevo','La píldora de estado avisa «Actualización disponible» cuando hay una versión nueva del panel o del servidor, y al tocarla se actualiza. En el catálogo del asesor, el botón Actualizar lleva un punto.'],
+  ['mejora','Las hojas Auditoria y Errores quedan ordenadas: encabezado fijo, columnas anchas, filtro, y una nota en cada título que explica qué es.']]},
  {v:'2026.11.13',f:'25 de noviembre de 2026',t:'Registro de movimientos y errores',items:[
   ['nuevo','Registro (menú): cada movimiento queda anotado (quién, qué, cuándo) y cada falla con un código de incidente y qué hacer. Se puede buscar, filtrar y descargar.'],
   ['nuevo','Los accesos, los intentos fallidos, los permisos negados y los errores del despertador y del respaldo también quedan en el registro.'],
@@ -841,7 +865,8 @@ function contar(){
   });
 }
 function sinConexion(){var b=$('#sinred');if(b)b.classList.toggle('on',navigator.onLine===false);pintarEstado()}
-window.addEventListener('offline',sinConexion);window.addEventListener('online',function(){sinConexion();refrescarPedidos()});
+window.addEventListener('offline',sinConexion);window.addEventListener('online',function(){sinConexion();refrescarPedidos();if(S.token)revisarActualizacion(true)});
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&S.token)revisarActualizacion()});
 function firmaPedidos(){return S.pedidos.map(function(p){return p.id+p.estado+p.total+p.unidades}).join('|')}
 document.addEventListener('keydown',function(e){   // «/» lleva a la búsqueda (como en tiendas y paneles profesionales)
   if(e.key!=='/'||e.ctrlKey||e.metaKey||e.altKey)return;var t=e.target;if(t&&/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))return;
@@ -868,6 +893,7 @@ $('#sheet').addEventListener('click',function(e){
   var b=e.target.closest('[data-ir]');if(b){cerrar();irA(b.dataset.ir)}});
 document.addEventListener('click',function(e){
   var ba=e.target.closest('.js-act');
+  if(ba&&UPD.pend&&ba.classList.contains('estado')){aplicarActualizacion();return}
   if(ba){
     document.querySelectorAll('.js-act').forEach(function(x){x.classList.add('girando')});
     EST.refresh=true;pintarEstado();
@@ -885,7 +911,7 @@ function nombreVend(id){if(id==='detal')return 'Detal';var v=S.vendedores.filter
 /* ——— Pedidos ——— */
 function cargarPedidos(){return api('listarPedidos',{}).then(function(r){if(r&&r.ok)S.pedidos=r.pedidos})}
 function cargarVendedores(){return api('listarVendedores',{}).then(function(r){if(r&&r.ok)S.vendedores=r.vendedores})}
-function fechaDe(txt){var m=String(txt||'').match(/(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2}))?/);return m?new Date(+m[3],+m[2]-1,+m[1],+(m[4]||0),+(m[5]||0)):null}
+function fechaDe(txt){var m=String(txt||'').match(/(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2}))?/);if(m)return new Date(+m[3],+m[2]-1,+m[1],+(m[4]||0),+(m[5]||0));var t=Date.parse(String(txt||''));return isNaN(t)?null:new Date(t)}
 function cuando(txt){
   var d=fechaDe(txt);if(!d)return esc(txt);
   var hoy=new Date(),h0=new Date(hoy.getFullYear(),hoy.getMonth(),hoy.getDate()),dias=Math.round((h0-new Date(d.getFullYear(),d.getMonth(),d.getDate()))/864e5),hh=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
@@ -2154,6 +2180,7 @@ function pendientes(){var o={};S.pedidos.forEach(function(p){if(p.estado==='POR_
 function refrescarPedidos(){
   if(!S.token||!$('#ov').hidden)return;
   var visible=document.visibilityState==='visible';
+  revisarActualizacion();
   if(!visible&&!avisosActivos())return;          // con la pestaña oculta solo se vigila si hay avisos del navegador activos
   var antes=VISTOS||pendientes(),firma0=firmaPedidos();
   EST.refresh=true;pintarEstado();
