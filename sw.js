@@ -1,18 +1,19 @@
-/* Service worker del catálogo y del panel de Distrisander.
+/* Service worker del catálogo de Distrisander (vive en /catalogo/; el panel tiene el suyo en /panel/).
    · Las páginas (.html) van «red primero»: siempre se ve la versión más nueva; sin internet se abre la última guardada
      (el catálogo muestra entonces el último catálogo guardado en el celular; para ENVIAR un pedido sí hace falta internet).
    · Íconos, fotos y manifiestos: lo guardado primero, y se renuevan en segundo plano.
    · NUNCA toca otros orígenes (el servidor de Apps Script, las letras de Google): los pedidos y precios siempre van a la red.
+   · La caché se llama «ds-cat-…» y solo borra cachés del catálogo viejas (las «ds-…» de antes y las «ds-cat-…»): el panel vive en el mismo dominio y guarda las suyas («ds-panel-…»).
    Cuando cambie este archivo o la lista de abajo, sube el número de VERSION. */
-const VERSION = '2026-11-25-5';
-const CACHE = 'ds-' + VERSION;
-const PRECACHE = ['index.html', 'panel.html', 'manifest.webmanifest', 'panel.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/panel-192.png', 'icons/favicon-64.png', 'img/marca/logo-dorado.svg', 'img/marca/marca-dorado.svg', 'fonts/inter-latin.woff2', 'fonts/playfair-latin.woff2'];
+const VERSION = '2026-11-26-1';
+const CACHE = 'ds-cat-' + VERSION;
+const PRECACHE = ['index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/favicon-64.png', 'img/marca/logo-dorado.svg', 'img/marca/marca-dorado.svg', 'fonts/inter-latin.woff2', 'fonts/playfair-latin.woff2'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', (e) => {
-  e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k.startsWith('ds-') && !k.startsWith('ds-panel-') && k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
 });
 
 self.addEventListener('fetch', (e) => {
@@ -27,7 +28,7 @@ self.addEventListener('fetch', (e) => {
       fetch(r).then((resp) => {
         if (resp && resp.ok) { const copia = resp.clone(); caches.open(CACHE).then((c) => c.put(llave, copia)); }
         return resp;
-      }).catch(() => caches.match(llave).then((g) => g || caches.match(/panel/.test(u.pathname) ? 'panel.html' : 'index.html')))
+      }).catch(() => caches.match(llave).then((g) => g || caches.match('index.html')))
     );
     return;
   }

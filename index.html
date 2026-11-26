@@ -716,7 +716,7 @@ function exito(r,cli,pago,obs){
 var ESTADO={POR_APROBAR:'Por aprobar',APROBADO:'Aprobado',RECHAZADO:'Rechazado',ANULADO:'Anulado'};
 var LISTAS={1:'Bucaramanga y área',2:'Sábana de Torres y pueblos',3:'Pamplona, Cúcuta y área',4:'Arauca, Tibú y zona roja',5:'Detal'};
 function hoja(titulo,html){HOJA='otra';$('#stit').textContent=titulo;$('#cuerpo').innerHTML=html;mostrarHoja()}
-var VERSION_CAT='2026.11.15',ACT_PEND=false,ACT_T=0;
+var VERSION_CAT='2026.11.16',ACT_PEND=false,ACT_T=0;
 /* ¿Hay una versión nueva del catálogo en GitHub? Solo se avisa a quien está en modo asesor (botón Actualizar con un punto). */
 function revisarActualizacion(forzar){
   if(ACT_PEND||navigator.onLine===false||(!forzar&&Date.now()-ACT_T<600000))return;
@@ -741,7 +741,7 @@ function loginVend(msg){
   hoja('Soy asesor','<form class="fld" id="fLoginV" autocomplete="off">'+(msg?'<div class="warn">'+esc(msg)+'</div>':'')
     +'<label>Tu código de asesor<input id="vU" value="'+esc(pre)+'" autocapitalize="off" autocomplete="username" placeholder="Ej. tatiana"></label>'
     +'<label>PIN<input id="vP" type="password" inputmode="numeric" maxlength="6" autocomplete="current-password" placeholder="4 a 6 números"></label><div id="vE"></div>'
-    +'<button class="send" type="submit">Entrar</button><p class="note" style="text-align:center;margin-top:10px">Juan Carlos y Kevin entran por el <a href="panel.html">panel</a>.</p></form>');
+    +'<button class="send" type="submit">Entrar</button><p class="note" style="text-align:center;margin-top:10px">Juan Carlos y Kevin entran por el <a href="https://distrisander.github.io/panel/">panel</a>.</p></form>');
 }
 function enviarLogin(){
   var u=val('vU').toLowerCase(),p=val('vP');
@@ -751,7 +751,7 @@ function enviarLogin(){
   api('verificarPin',{usuario:u,pin:p}).then(function(r){
     btn.disabled=false;btn.textContent='Entrar';
     if(!r||!r.ok){$('#vE').innerHTML='<div class="warn">'+esc((r&&r.message)||'No se pudo entrar.')+'</div>';return}
-    if(r.rol!=='vendedor'){$('#vE').innerHTML='<div class="warn">Esta entrada es para asesores. Tú entras por el <a href="panel.html">panel</a>.</div>';return}
+    if(r.rol!=='vendedor'){$('#vE').innerHTML='<div class="warn">Esta entrada es para asesores. Tú entras por el <a href="https://distrisander.github.io/panel/">panel</a>.</div>';return}
     SES={token:r.token,usuario:r.usuario,nombre:(CAT&&CAT.vendedorId===r.usuario)?CAT.vendedor:r.usuario};
     guardar(K_VEND,SES);barraVend();cerrar();setTimeout(function(){revisarActualizacion(true)},3000);aviso('Hola, '+(SES.nombre||SES.usuario)+'. Ya puedes ver tus pedidos y tus enlaces.');
   }).catch(function(){btn.disabled=false;btn.textContent='Entrar';$('#vE').innerHTML='<div class="warn">No pudimos conectar. Revisa tu internet.</div>'});
