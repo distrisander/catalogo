@@ -427,7 +427,8 @@ input[type=file]::file-selector-button{border:0;border-radius:99px;background:li
   .im{font:11pt/1.45 'Inter',Arial,Helvetica,sans-serif;color:#111}
   .im small{display:block;font-size:8pt;letter-spacing:.08em;text-transform:uppercase;color:#555;font-weight:700}
   .im-cab{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #111;padding-bottom:10px;margin-bottom:14px}
-  .im-marca{display:flex;align-items:center;gap:12px}
+  .im-marca{display:flex;flex-direction:column;align-items:flex-start;gap:5px}
+  .im-logo{display:block;height:15mm;width:auto}
   .im-mark{width:46px;height:46px;border:2px solid #111;border-radius:50%;display:grid;place-items:center;font:700 16pt 'Playfair Display',Georgia,serif}
   .im-marca b{font:700 15pt 'Playfair Display',Georgia,serif;display:block;text-transform:none;letter-spacing:0;color:#111}
   .im-marca small{margin-top:2px}
@@ -1126,7 +1127,7 @@ function imprimirPedido(id){
     return '<tr><td class="c"><span class="cb"></span></td><td>'+esc(l.codigo)+'</td><td><b>'+esc(titulo(l.nombre))+'</b>'+(l.tono?' <small style="display:inline">· '+esc(titulo(l.tono))+'</small>':'')+'<br><small>'+(l.unidad_venta==='caja'?'Caja x'+l.por_caja+' = '+l.unidades+' unidades':'Por unidad')+'</small></td><td class="r"><b>'+l.cantidad+'</b></td><td class="r">'+(l.unidades||l.cantidad)+'</td></tr>';
   }).join('');
   var f=fechaDe(p.fecha);
-  $('#impresion').innerHTML='<div class="im-cab"><div class="im-marca"><span class="im-mark">DS</span><div><b>Distrisander Cosméticos</b><small>Hoja de alistamiento · Bodega</small></div></div><div class="im-num"><small>Pedido</small><b>'+esc(p.id)+'</b><small>'+(f?f.toLocaleDateString('es-CO',{day:'numeric',month:'long',year:'numeric'}):esc(p.fecha))+'</small></div></div>'
+  $('#impresion').innerHTML='<div class="im-cab"><div class="im-marca"><img class="im-logo" src="img/marca/logo-negro.svg" alt="Distrisander Cosméticos"><small>Hoja de alistamiento · Bodega</small></div><div class="im-num"><small>Pedido</small><b>'+esc(p.id)+'</b><small>'+(f?f.toLocaleDateString('es-CO',{day:'numeric',month:'long',year:'numeric'}):esc(p.fecha))+'</small></div></div>'
     +'<div class="im-grid"><div><small>Cliente</small><b>'+esc(p.negocio)+'</b><div>'+(p.cliente?esc(p.cliente)+' · ':'')+'Recibe: '+esc(p.recibe)+' · '+esc(p.cedula_nit)+'</div></div>'
     +'<div><small>Entrega</small><b>'+esc(p.direccion)+'</b><div>'+esc(p.ciudad_barrio)+' · Tel. '+esc(p.telefono)+'</div></div>'
     +'<div><small>Asesor</small><b>'+esc(nombreVend(p.vendedor))+'</b><div>Lista '+esc(p.lista)+'</div></div>'
@@ -1134,7 +1135,8 @@ function imprimirPedido(id){
     +'<table class="im-t"><thead><tr><th class="c">✓</th><th>Código</th><th>Producto</th><th class="r">Cant.</th><th class="r">Unid.</th></tr></thead><tbody>'+filas+'</tbody><tfoot><tr><td colspan="3">'+p.lineas.length+(p.lineas.length===1?' producto':' productos')+'</td><td class="r">'+tc+'</td><td class="r">'+tu+'</td></tr></tfoot></table>'
     +(p.observaciones?'<div class="im-obs"><small>Observaciones</small>'+esc(p.observaciones)+'</div>':'')
     +'<div class="im-firmas"><div>Preparó</div><div>Revisó</div><div>Recibió</div></div><div class="im-pie">Impreso el '+new Date().toLocaleString('es-CO')+' por '+esc(S.usuario)+'</div>';
-  setTimeout(function(){window.print()},120);
+  var logoIm=document.querySelector('#impresion .im-logo');
+  (logoIm&&logoIm.decode?logoIm.decode():Promise.resolve()).catch(function(){}).then(function(){setTimeout(function(){window.print()},120)});   // espera a que el logo esté listo antes de imprimir
 }
 window.addEventListener('afterprint',function(){var i=document.getElementById('impresion');if(i)i.innerHTML=''});
 function infoFila(ic,lbl,html){return '<div>'+iconoSvg(ic)+'<span><small>'+lbl+'</small><b>'+html+'</b></span></div>'}
