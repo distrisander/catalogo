@@ -5,7 +5,7 @@
    · NUNCA toca otros orígenes (el servidor de Apps Script, las letras de Google): los pedidos y precios siempre van a la red.
    · La caché se llama «ds-cat-…» y solo borra cachés del catálogo viejas (las «ds-…» de antes y las «ds-cat-…»): el panel vive en el mismo dominio y guarda las suyas («ds-panel-…»).
    Cuando cambie este archivo o la lista de abajo, sube el número de VERSION. */
-const VERSION = '2026-11-26-1';
+const VERSION = '2026-11-27-2';
 const CACHE = 'ds-cat-' + VERSION;
 const PRECACHE = ['index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/favicon-64.png', 'img/marca/logo-dorado.svg', 'img/marca/marca-dorado.svg', 'fonts/inter-latin.woff2', 'fonts/playfair-latin.woff2'];
 

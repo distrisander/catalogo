@@ -716,7 +716,7 @@ function exito(r,cli,pago,obs){
 var ESTADO={POR_APROBAR:'Por aprobar',APROBADO:'Aprobado',RECHAZADO:'Rechazado',ANULADO:'Anulado'};
 var LISTAS={1:'Precio Distribuidor',2:'Lista 1',3:'Lista 2',4:'Lista 3',5:'Precio Detal'};
 function hoja(titulo,html){HOJA='otra';$('#stit').textContent=titulo;$('#cuerpo').innerHTML=html;mostrarHoja()}
-var VERSION_CAT='2026.11.17',ACT_PEND=false,ACT_T=0;
+var VERSION_CAT='2026.11.18',ACT_PEND=false,ACT_T=0;
 /* ¿Hay una versión nueva del catálogo en GitHub? Solo se avisa a quien está en modo asesor (botón Actualizar con un punto). */
 function revisarActualizacion(forzar){
   if(ACT_PEND||navigator.onLine===false||(!forzar&&Date.now()-ACT_T<600000))return;
@@ -800,12 +800,24 @@ function misEnlaces(){
     $('#meLista').className='';
     if(r.zonas)Object.keys(r.zonas).forEach(function(l){LISTAS[l]=r.zonas[l].nombre});
     var base=location.origin+location.pathname.replace(/[^\/]*$/,'')+'index.html?k=';
+    var zonaTxt=function(l){
+      var z=(r.zonas||{})[l]||{},cs=(z.ciudades||[]),pu=(z.pueblos||[]),t=[];
+      if(String(l)==='5')return 'Precio al detal · vale para todas las ciudades';
+      t.push(String(l)==='1'?'Precio estándar de distribuidor':'Lista de precios por zona');
+      t.push(cs.length||pu.length?(cs.length?'Ciudades: '+cs.join(', '):'')+(cs.length&&pu.length?' · ':'')+(pu.length?'Pueblos: '+pu.join(', '):''):'Ciudades por definir');
+      return t.join(' · ');
+    };
     $('#meLista').innerHTML=r.enlaces.length?r.enlaces.map(function(e){
-      return '<div class="mp'+(e.activo?'':' off')+'"><b>'+esc(LISTAS[e.lista]||('Lista '+e.lista))+'</b>'+(e.activo?'':' <span class="pill p-RECHAZADO">desactivado</span>')+'<div class="url">'+esc(base+e.clave)+'</div><button class="sec" data-cop="'+esc(base+e.clave)+'" type="button" style="margin-top:4px">Copiar enlace</button></div>'}).join(''):'<div class="empty">Todavía no tienes enlaces. Pídele uno a Juan Carlos.</div>';
+      var u=base+e.clave;
+      return '<div class="mp'+(e.activo?'':' off')+'"><b>'+esc(LISTAS[e.lista]||('Lista '+e.lista))+'</b>'+(e.activo?'':' <span class="pill p-RECHAZADO">desactivado</span>')+'<div class="note" style="margin:4px 0 0">'+esc(zonaTxt(e.lista))+'</div><div class="url">'+esc(u)+'</div>'
+        +'<button class="sec" data-cop="'+esc(u)+'" type="button" style="margin-top:4px">Copiar enlace</button>'
+        +'<button class="sec" data-sh="'+esc(u)+'" type="button" style="margin-top:6px">Compartir</button>'
+        +'<a class="sec" href="'+esc(u)+'&c=1" target="_blank" rel="noopener" style="margin-top:6px">Abrir (vista del cliente)</a></div>'}).join(''):'<div class="empty">Todavía no tienes enlaces. Pídele uno a Juan Carlos.</div>';
   }).catch(function(){$('#meLista').textContent='No pudimos conectar.'});
 }
 function salirVend(){api('cerrarSesion',{}).catch(function(){});SES=null;try{localStorage.removeItem(K_VEND)}catch(e){}barraVend();aviso('Saliste del modo asesor.')}
 try{SES=JSON.parse(localStorage.getItem(K_VEND)||'null')}catch(e){SES=null}
+if(/[?&]c=1(&|$)/.test(location.search))SES=null;   // «vista de cliente»: se ve el catálogo tal como lo ve el cliente (el asesor entra por «Soy asesor» al final)
 barraVend();
 if(SES){api('miSesion',{}).catch(function(){});setTimeout(function(){revisarActualizacion(true)},4000)}
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&SES)revisarActualizacion()});
@@ -818,8 +830,9 @@ $('#close').addEventListener('click',cerrar);
 $('#ov').addEventListener('click',function(e){if(e.target.id==='ov')cerrar()});
 document.addEventListener('keydown',function(e){if(e.key==='Escape')cerrar()});
 $('#cuerpo').addEventListener('click',function(e){
-  var m=e.target.closest('.mp');if(m&&!e.target.closest('button'))m.classList.toggle('on');
+  var m=e.target.closest('.mp');if(m&&!e.target.closest('button,a'))m.classList.toggle('on');
   var b=e.target.closest('button');if(!b)return;
+  if(b.dataset.sh){var su=b.dataset.sh;if(navigator.share){navigator.share({title:'Catálogo Distrisander',text:'Hola 👋 Este es el catálogo de Distrisander Cosméticos:',url:su}).catch(function(){})}else window.open('https://wa.me/?text='+encodeURIComponent('Hola 👋 Este es el catálogo de Distrisander Cosméticos: '+su),'_blank','noopener');return}
   if(b.dataset.cop){(navigator.clipboard?navigator.clipboard.writeText(b.dataset.cop):Promise.reject()).then(function(){aviso('Enlace copiado')},function(){window.prompt('Copia el enlace:',b.dataset.cop)});return}
   if(b.id==='mpAct'){misPedidos();return}
   if(b.dataset.pm||b.dataset.ps||b.dataset.rec){
