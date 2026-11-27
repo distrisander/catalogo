@@ -714,7 +714,7 @@ function exito(r,cli,pago,obs){
 
 /* ——— Modo vendedor: el asesor entra con su PIN al MISMO catálogo y ve sus pedidos y sus enlaces ——— */
 var ESTADO={POR_APROBAR:'Por aprobar',APROBADO:'Aprobado',RECHAZADO:'Rechazado',ANULADO:'Anulado'};
-var LISTAS={1:'Bucaramanga y área',2:'Sábana de Torres y pueblos',3:'Pamplona, Cúcuta y área',4:'Arauca, Tibú y zona roja',5:'Detal'};
+var LISTAS={1:'Precio Distribuidor',2:'Lista 1',3:'Lista 2',4:'Lista 3',5:'Precio Detal'};
 function hoja(titulo,html){HOJA='otra';$('#stit').textContent=titulo;$('#cuerpo').innerHTML=html;mostrarHoja()}
 var VERSION_CAT='2026.11.17',ACT_PEND=false,ACT_T=0;
 /* ¿Hay una versión nueva del catálogo en GitHub? Solo se avisa a quien está en modo asesor (botón Actualizar con un punto). */
@@ -801,7 +801,7 @@ function misEnlaces(){
     if(r.zonas)Object.keys(r.zonas).forEach(function(l){LISTAS[l]=r.zonas[l].nombre});
     var base=location.origin+location.pathname.replace(/[^\/]*$/,'')+'index.html?k=';
     $('#meLista').innerHTML=r.enlaces.length?r.enlaces.map(function(e){
-      return '<div class="mp'+(e.activo?'':' off')+'"><b>Lista '+esc(e.lista)+'</b> · '+esc(LISTAS[e.lista]||'')+(e.activo?'':' <span class="pill p-RECHAZADO">desactivado</span>')+'<div class="url">'+esc(base+e.clave)+'</div><button class="sec" data-cop="'+esc(base+e.clave)+'" type="button" style="margin-top:4px">Copiar enlace</button></div>'}).join(''):'<div class="empty">Todavía no tienes enlaces. Pídele uno a Juan Carlos.</div>';
+      return '<div class="mp'+(e.activo?'':' off')+'"><b>'+esc(LISTAS[e.lista]||('Lista '+e.lista))+'</b>'+(e.activo?'':' <span class="pill p-RECHAZADO">desactivado</span>')+'<div class="url">'+esc(base+e.clave)+'</div><button class="sec" data-cop="'+esc(base+e.clave)+'" type="button" style="margin-top:4px">Copiar enlace</button></div>'}).join(''):'<div class="empty">Todavía no tienes enlaces. Pídele uno a Juan Carlos.</div>';
   }).catch(function(){$('#meLista').textContent='No pudimos conectar.'});
 }
 function salirVend(){api('cerrarSesion',{}).catch(function(){});SES=null;try{localStorage.removeItem(K_VEND)}catch(e){}barraVend();aviso('Saliste del modo asesor.')}
